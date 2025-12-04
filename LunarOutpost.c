@@ -26,6 +26,7 @@
 #include "ArmoredTransportVehicle.h"
 #include "AlienFloraCollection.h"
 #include "JeepWrangler.h"
+#include "astronaut.h"
 
 // Forward declaration needed before extra drone initialization uses it
 double GetTerrainHeight(double worldX, double worldZ);
@@ -183,6 +184,10 @@ unsigned int mossTexture;    // moss.bmp
 unsigned int alienTexture1;  // alien-type-1.bmp
 unsigned int alienTexture2;  // alien-type-2.bmp
 unsigned int alienTexture3;  // alien-type-3.bmp
+
+// Astronaut textures (for objects that use texture[] array)
+unsigned int texture[20];  // Texture array for objects
+int ntex = 0;  // Number of textures loaded
 
 // Crystal setup
 #define NUM_CRYSTALS 5
@@ -1619,7 +1624,9 @@ void display()
       if (!viewMode)
       {
          glEnable(GL_LIGHTING);
-         DrawPlayer();
+         // Draw realistic astronaut character at player position
+         Astronaut(playerX, playerY - playerHeight * 0.5, playerZ,
+                   1.0, playerYaw, time);
       }
       
       // Draw axes if enabled
@@ -1804,7 +1811,9 @@ void display()
    if (!viewMode)
    {
       glEnable(GL_LIGHTING);
-      DrawPlayer();
+      // Astronaut character at player position
+      Astronaut(playerX, playerY - playerHeight * 0.5, playerZ,
+                1.0, playerYaw, time);
    }
    
    // Draw axes for debugging
@@ -2077,7 +2086,16 @@ int main(int argc, char* argv[])
    alienTexture1 = LoadTexBMP("textures/aliens/alien-type-1.bmp");
    alienTexture2 = LoadTexBMP("textures/aliens/alien-type-2.bmp");
    alienTexture3 = LoadTexBMP("textures/aliens/alien-type-3.bmp");
-   
+
+   // Loading astronaut textures into texture[] array
+   // These indices match what astronaut.c expects
+   texture[7]  = LoadTexBMP("textures/metals/blue_metal.bmp");      // Reflective visor
+   texture[9]  = LoadTexBMP("textures/metals/metal_plate.bmp");     // Metallic joints
+   texture[10] = LoadTexBMP("textures/shirt-1.bmp");                // Gloves
+   texture[11] = LoadTexBMP("textures/spacesuit.bmp");              // Main suit body
+   texture[12] = LoadTexBMP("textures/shoe.bmp");                   // Boots
+   ntex = 13;  // Update texture count
+
    // Setting player starting position
    playerY = GetTerrainHeight(playerX, playerZ) + playerHeight;
    // Making player face toward the sun at spawn

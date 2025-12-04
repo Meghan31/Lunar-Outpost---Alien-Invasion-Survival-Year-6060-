@@ -34,6 +34,7 @@ UFOSpacecraft.o: UFOSpacecraft.c CSCIx229.h
 ArmoredTransportVehicle.o: ArmoredTransportVehicle.c CSCIx229.h
 AlienFloraCollection.o: AlienFloraCollection.c CSCIx229.h
 JeepWrangler.o: JeepWrangler.c CSCIx229.h
+astronaut.o: astronaut.c CSCIx229.h astronaut.h
 
 fatal.o: fatal.c CSCIx229.h
 errcheck.o: errcheck.c CSCIx229.h
@@ -55,7 +56,7 @@ CSCIx229.a:fatal.o errcheck.o print.o loadtexbmp.o loadobj.o projection.o
 
 # L: LunarOutpost.o FloatingCrystalShard.o shader_loader.o AlienScoutDrone.o BioluminescentSporeCloud.o GeometricAlienFlora.o LunarisVex.o UFOSpacecraft.o ArmoredTransportVehicle.o AlienFloraCollection.o JeepWrangler.o CSCIx229.a
 
-L: LunarOutpost.o FloatingCrystalShard.o shader_loader.o AlienScoutDrone.o LunarisVex.o UFOSpacecraft.o ArmoredTransportVehicle.o AlienFloraCollection.o JeepWrangler.o CSCIx229.a
+L: LunarOutpost.o FloatingCrystalShard.o shader_loader.o AlienScoutDrone.o LunarisVex.o UFOSpacecraft.o ArmoredTransportVehicle.o AlienFloraCollection.o JeepWrangler.o astronaut.o CSCIx229.a
 	gcc $(CFLG) -o $@ $^  $(LIBS)
 	
 
