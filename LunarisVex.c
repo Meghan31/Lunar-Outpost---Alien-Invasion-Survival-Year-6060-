@@ -1,6 +1,7 @@
 /*
  * Lunaris Vex - moon alien character
  * Rendering bioluminescent alien with shaders and dust particles
+ * Took assistance from AI in building the particle system and shader integration and small parts of character.
  */
 
 #include "CSCIx229.h"

@@ -1,19 +1,19 @@
 /*
  *  Lunar Outpost - Alien Invasion Survival (Year 6060)
  *  
- *  A first-person survival game set on the Moon
- *  Featuring: Giant textured sun, starfield, irregular lunar terrain with craters
+ *  First-person survival game set on the Moon
+ *  Features: Giant textured sun, starfield, irregular lunar terrain with craters
  *  
  *  Key bindings:
- *  WASD       Move forward/left/backward/right
- *  Mouse      Look around (FPP)
- *  v/V        Toggle FPP/Third-person debug view
- *  l/L        Toggle lighting
- *  m/M        Toggle mouse look
- *  t/T        Toggle sun animation
- *  x/X        Toggle axes
- *  ESC        Exit
+ *  WASD       Moving forward/left/backward/right
+ *  Mouse      Looking around (FPP)
+ *  v/V        Toggling FPP/Third-person debug view
+ *  m/M        Toggling mouse look
+ *  x/X        Toggling axes
+ *  ESC        Exiting
  */
+
+ // Took assistance from AI in building parts of the codebase such as declaration of objects outside of this file and randomizing the objects
 
 #include "CSCIx229.h"
 #include <stdbool.h>
@@ -30,26 +30,25 @@
 // Forward declaration needed before extra drone initialization uses it
 double GetTerrainHeight(double worldX, double worldZ);
 
-// =============================================
-// Additional Alien Scout Drones (12 more)
-// =============================================
 
-// Extra scout drones (in addition to any single test drone)
+// Extra Alien Scout Drones (12 more)
+
+// Extra scout drones in addition to any single test drone
 #define NUM_EXTRA_DRONES 12
 typedef struct {
    float x,y,z;        // position
-   float baseY;        // terrain base + initial offset
+   float baseY;        // terrain base plus initial offset
    float facing;       // degrees
    float speed;        // movement speed
    float scale;        // size multiplier
-   int   seed;         // per-drone seed (for animation variation)
-   float turnCooldown; // frames/time until next random turn allowed
+   int   seed;         // per-drone seed for animation variation
+   float turnCooldown; // frames or time until next random turn allowed
 } ExtraDrone;
 static ExtraDrone extraDrones[NUM_EXTRA_DRONES];
 
 static void InitExtraDrones()
 {
-   srand(246810); // different seed
+   srand(246810); // using different seed
    for(int i=0;i<NUM_EXTRA_DRONES;i++)
    {
       // Disperse broadly but keep inside terrain bounds (-230..230)
@@ -108,63 +107,63 @@ static void UpdateExtraDrones(double time)
 // Global variable
 // SporeCloud* sporeCloud1;
 
-// Window dimensions
+// Window size
 int windowWidth = 1200;
 int windowHeight = 800;
 
-// Camera and view state
+// Camera and view settings
 int axes = 0;           // Display axes for debugging
 int light = 1;          // Lighting enabled
-int viewMode = 1;       // 1=FPP, 0=Third-person debug
+int viewMode = 1;       // 1 is FPP, 0 is Third-person debug
 int mouseLook = 1;      // Mouse look enabled
 double asp = 1.0;       // Aspect ratio
-double fov = 70;        // Field of view (wider for dramatic effect)
+double fov = 70;        // Field of view, wider for dramatic effect
 
 // Player position and movement
 double playerX = 0.0;
 double playerY = 2.0;   // Height above ground
-double playerZ = 30.0;  // Start further back to see scene
+double playerZ = 30.0;  // Starting further back to see scene
 double playerHeight = 1.8;
 
-// Player rotation (angles in degrees)
+// Player rotation in degrees
 double playerYaw = 0.0;
 double playerPitch = 0.0;
 
-// Movement state
+// Movement flags
 bool moveForward = false;
 bool moveBackward = false;
 bool moveLeft = false;
 bool moveRight = false;
 
-// Mouse control
+// Mouse tracking
 int lastMouseX = 0;
 int lastMouseY = 0;
 bool firstMouse = true;
-double mouseSensitivity = 0.05;  // Smooth mouse control
+double mouseSensitivity = 0.15;  // Responsive mouse control for smooth looking
 
-// Physics constants
-const double MOVE_SPEED = 8.0;     // Movement speed (units per second)
+// Movement constants
+const double MOVE_SPEED = 8.0;     // Movement speed in units per second
 const double MOUSE_SMOOTH = 0.05;  // Mouse smoothing
 
-// Sun/lighting animation
+// Sun and lighting animation
 double sunTime = 0.0;
-int animateSun = 0;  // Toggle sun animation
+int animateSun = 0;  // Toggling sun animation
 
 
 #define SUN_WORLD_X -300.0
 #define SUN_WORLD_Z -400.0
 
-// Facing towards Sun
+// Calculating facing direction towards sun
 static double FacingTowardSun(double x, double z)
 {
    double dx = SUN_WORLD_X - x;
    double dz = SUN_WORLD_Z - z;
-   double ang = atan2(dx, dz) * 180.0 / M_PI; // atan2(x,z) matches sin/cos usage later
+   double ang = atan2(dx, dz) * 180.0 / M_PI; // atan2 for x,z matching sin/cos usage later
    if (ang < 0) ang += 360.0;
    return ang;
 }
 
-// Textures
+// Texture IDs
 unsigned int moonTexture;
 unsigned int sunTexture;
 unsigned int rockTexture1;  // moon2.bmp
@@ -174,7 +173,7 @@ unsigned int rockTexture4;  // wall.bmp
 unsigned int rockTexture5;  // rusty_car.bmp
 unsigned int rockTexture6;  // rusty_plane.bmp
 
-// Floral textures
+// Flora textures
 unsigned int floraTexture1;  // flora-1.bmp
 unsigned int floraTexture2;  // flora-2.bmp
 unsigned int floraTexture3;  // flora-3.bmp
@@ -185,7 +184,7 @@ unsigned int alienTexture1;  // alien-type-1.bmp
 unsigned int alienTexture2;  // alien-type-2.bmp
 unsigned int alienTexture3;  // alien-type-3.bmp
 
-// Crystal positions
+// Crystal setup
 #define NUM_CRYSTALS 5
 typedef struct {
    float x, y, z;
@@ -194,20 +193,20 @@ typedef struct {
 } Crystal;
 Crystal crystals[NUM_CRYSTALS];
 
-// Aliens wandering the map
-#define NUM_ALIENS 8  // Reduced from 15 to 8 for performance
+// Aliens wandering around
+#define NUM_ALIENS 8  // Cut from 15 to 8 for better performance
 typedef struct {
    float x, y, z;
    float facing;
-   int emotion;  // 0=calm, 1=curious, 2=alert, 3=thinking
+   int emotion;  // 0 is calm, 1 is curious, 2 is alert, 3 is thinking
    float speed;
    float rotationSpeed;
    int isGliding;
 } AlienEntity;
 AlienEntity aliens[NUM_ALIENS];
 
-// UFO Spacecrafts
-#define NUM_UFOS 5  // Reduced from 8 to 5 for performance
+// UFO spacecrafts
+#define NUM_UFOS 5  // Cut from 8 to 5 for better performance
 typedef struct {
    float x, y, z;
    float scale;
@@ -218,63 +217,63 @@ typedef struct {
 UFOEntity ufos[NUM_UFOS];
 
 // Jeep Wranglers
-#define NUM_JEEPS 6  // Reduced from 10 to 6 for performance
+#define NUM_JEEPS 6  // Cut from 10 to 6 for better performance
 typedef struct {
    float x, y, z;
    float scale;
    float facing;
    float speed;
-   float dirAngle;   // Fixed direction (radians) for straight-line movement
+   float dirAngle;   // Fixed direction in radians for straight-line movement
 } JeepEntity;
 JeepEntity jeeps[NUM_JEEPS];
 
-// Armored Transport Vehicles 12
+// Armored Transport Vehicles
 #define NUM_ARMORED_VEHICLES 12
 typedef struct {
    float x, y, z;
    float facing;    // degrees
    float speed;     // units per frame
-   float dirAngle;  // radians direction of travel
+   float dirAngle;  // direction of travel in radians
    float scale;     // render scale
 } ArmoredEntity;
 ArmoredEntity armoredVehicles[NUM_ARMORED_VEHICLES];
 
-// Flying Armored Vehicles (patrol craft in the air)
+// Flying Armored Vehicles patrolling in the air
 #define NUM_FLYING_ARMORED 10
 typedef struct {
    float x, y, z;
    float baseY;     // base altitude
    float facing;    // degrees
    float speed;     // units per frame
-   float dirAngle;  // radians direction of travel
+   float dirAngle;  // direction of travel in radians
    float scale;     // render scale
    int seed;        // for hover variation
 } FlyingArmoredEntity;
 FlyingArmoredEntity flyingArmored[NUM_FLYING_ARMORED];
 
-// Flora instances dispersed across terrain
-#define NUM_FLORA 25  // Dispersed flora instances
+// Flora instances scattered across terrain
+#define NUM_FLORA 25  // Scattered flora around the map
 typedef struct {
    float x, y, z;
    float scale;
-   int type;  // 0-5: EggCluster, AntlerBranch, BubbleStack, CoralBranch, BladeFan, MushroomCaps
-   int textureIndex;  // Which texture to use (0-3)
+   int type;  // 0 to 5: EggCluster, AntlerBranch, BubbleStack, CoralBranch, BladeFan, MushroomCaps
+   int textureIndex;  // Which texture we're using, 0 to 3
    int seed;  // For procedural variation
 } FloraEntity;
 FloraEntity flora[NUM_FLORA];
 
-// Object showcase mode
-int showcaseMode = 0;  // 0=normal game, 1=showcase individual objects
-int showcaseObject = 0;  // Which object to display (0-2)
-#define NUM_SHOWCASE_OBJECTS 12  // FloatingCrystal, AlienDrone, BiolumSporeCloud, // GeometricAlienFlora
+// Object showcase settings
+int showcaseMode = 0;  // 0 is normal game, 1 is showcase for individual objects
+int showcaseObject = 0;  // Which object we're displaying, 0 to 2
+#define NUM_SHOWCASE_OBJECTS 12  // FloatingCrystal, AlienDrone, BiolumSporeCloud, GeometricAlienFlora
 
-// Terrain data
+// Terrain grid
 #define TERRAIN_SIZE 65
 #define TERRAIN_SCALE 8.0  // Larger scale for rolling dunes
 float terrainZ[TERRAIN_SIZE][TERRAIN_SIZE];
 float terrainNormals[TERRAIN_SIZE][TERRAIN_SIZE][3];
 
-// Star positions (random, fixed)
+// Stars in the sky
 #define NUM_STARS 20
 typedef struct {
    float x, y, z;
@@ -283,13 +282,13 @@ typedef struct {
 } Star;
 Star stars[NUM_STARS];
 
-// Asteroids - moving objects in the sky
+// Asteroids moving through the sky
 #define NUM_ASTEROIDS 15
 typedef struct {
    float x, z;          // Horizontal position
-   float y;             // Vertical position (height)
-   float size;          // Size of asteroid
-   float speed;         // Fall speed
+   float y;             // Vertical position or height
+   float size;          // Asteroid size
+   float speed;         // Falling speed
    float rotX, rotY, rotZ;  // Rotation angles
    float rotSpeedX, rotSpeedY, rotSpeedZ;  // Rotation speeds
 } Asteroid;
@@ -299,11 +298,11 @@ double GetTerrainHeight(double worldX, double worldZ);
 
 
 /*
- * Initialize crystal positions across the map
+ * Setting up crystal positions across the map
  */
 void InitCrystals()
 {
-   srand(99999);  // Different seed from asteroids/stars
+   srand(99999);  // Using a different seed from asteroids and stars
    for (int i = 0; i < NUM_CRYSTALS; i++)
    {
       // Random positions across the terrain
@@ -320,8 +319,8 @@ void InitCrystals()
 }
 
 /*
- * Draw focused absorption beam between UFO and crystal
- * Creates a pulsing, slightly widening energy column suggesting the UFO is extracting energy.
+ * Drawing focused absorption beam between UFO and crystal
+ * Creating a pulsing, slightly widening energy column suggesting UFO is extracting energy
  */
 static void DrawAbsorptionBeam(double x, double crystalY, double z, double ufoBottomY, double time)
 {
@@ -381,19 +380,19 @@ static void DrawAbsorptionBeam(double x, double crystalY, double z, double ufoBo
 
 
 /*
- * Initialize aliens across the map
+ * Setting up aliens across the map
  */
 void InitAliens()
 {
-   srand(77777);  // Different seed
+   srand(77777);  // Using different seed
    for (int i = 0; i < NUM_ALIENS; i++)
    {
-      // Random positions across the terrain
+      // Placing them randomly across the terrain
       aliens[i].x = (float)rand() / RAND_MAX * 400.0 - 200.0;
       aliens[i].z = (float)rand() / RAND_MAX * 400.0 - 200.0;
       aliens[i].y = GetTerrainHeight(aliens[i].x, aliens[i].z) + 2.0;  // Increased from 0.5 to 2.0
       
-   // Face toward sun on spawn
+   // Making them face toward sun on spawn
    aliens[i].facing = FacingTowardSun(aliens[i].x, aliens[i].z);
       
       // Random emotion (0-3)
@@ -407,11 +406,11 @@ void InitAliens()
 }
 
 /*
- * Initialize UFOs across the sky
+ * Setting up UFOs across the sky
  */
 void InitUFOs()
 {
-   srand(88888);  // Different seed
+   srand(88888);  // Using different seed
    for (int i = 0; i < NUM_UFOS; i++)
    {
       // Random positions across the map
@@ -436,11 +435,11 @@ void InitUFOs()
 }
 
 /*
- * Initialize Jeeps across the map
+ * Setting up Jeeps across the map
  */
 void InitJeeps()
 {
-   srand(99999);  // Different seed
+   srand(99999);  // Using different seed
    for (int i = 0; i < NUM_JEEPS; i++)
    {
       // Random positions across the terrain
@@ -448,7 +447,7 @@ void InitJeeps()
       jeeps[i].z = (float)rand() / RAND_MAX * 400.0 - 200.0;
       jeeps[i].y = GetTerrainHeight(jeeps[i].x, jeeps[i].z) + 0.8;  // Added 0.8 offset
       
-   // Face toward sun on spawn
+   // Making them face toward sun on spawn
    jeeps[i].facing = FacingTowardSun(jeeps[i].x, jeeps[i].z);
       
       // Size variation
@@ -461,19 +460,19 @@ void InitJeeps()
    }
 }
 
-/* Initialize two armored transport vehicles 100 units ahead of player, offset left/right */
+/* Setting up two armored transport vehicles 100 units ahead of player, offset left and right */
 void InitArmoredVehicles()
 {
-   // Determine player forward direction (playerYaw already set before this call in main)
+   // Getting player forward direction, playerYaw already set before this call in main
    double yawRad = playerYaw * M_PI / 180.0;
    double fwdX = sin(yawRad);
    double fwdZ = cos(yawRad);
-   // Perpendicular vector for lateral offset
+   // Getting perpendicular vector for lateral offset
    double perpX = cos(yawRad);
    double perpZ = -sin(yawRad);
-   double baseDist = 100.0;  // 100 meters/units ahead
-   double lateralOffset = 15.0; // spread apart
-   // Seed for dispersed random spawns (distinct from others)
+   double baseDist = 100.0;  // 100 meters or units ahead
+   double lateralOffset = 15.0; // spreading them apart
+   // Using seed for dispersed random spawns, distinct from others
    srand(424242);
 
    for (int i = 0; i < NUM_ARMORED_VEHICLES; i++)
@@ -518,7 +517,7 @@ void InitArmoredVehicles()
    }
 }
 
-/* Update armored transport vehicles straight-line movement */
+/* Updating armored transport vehicles straight-line movement */
 void UpdateArmoredVehicles(double time)
 {
    for (int i = 0; i < NUM_ARMORED_VEHICLES; i++)
@@ -535,10 +534,10 @@ void UpdateArmoredVehicles(double time)
    }
 }
 
-/* Initialize flying armored vehicles dispersed across the sky */
+/* Setting up flying armored vehicles dispersed across the sky */
 void InitFlyingArmoredVehicles()
 {
-   srand(987654); // unique seed for flying vehicles
+   srand(987654); // using unique seed for flying vehicles
    for (int i = 0; i < NUM_FLYING_ARMORED; i++)
    {
       // Disperse across terrain bounds
@@ -561,7 +560,7 @@ void InitFlyingArmoredVehicles()
    }
 }
 
-/* Update flying armored vehicles movement */
+/* Updating flying armored vehicles movement */
 void UpdateFlyingArmoredVehicles(double time)
 {
    for (int i = 0; i < NUM_FLYING_ARMORED; i++)
@@ -583,12 +582,12 @@ void UpdateFlyingArmoredVehicles(double time)
 }
 
 /*
- * Initialize Flora across the terrain
- * Dispersed plants with proper height offsets to stay above terrain
+ * Setting up Flora across the terrain
+ * Scattered plants with proper height offsets staying above terrain
  */
 void InitFlora()
 {
-   srand(888888);  // Different seed for flora
+   srand(888888);  // Using different seed for flora
    for (int i = 0; i < NUM_FLORA; i++)
    {
       // Random positions across the terrain
@@ -624,12 +623,12 @@ void InitFlora()
 
 
 /*
- * Initialize starfield
- * Random positions in the sky, varying sizes
+ * Setting up starfield
+ * Random positions in the sky with varying sizes
  */
 void InitStarfield()
 {
-   srand(42);  // Fixed seed for consistent stars
+   srand(42);  // Using fixed seed for consistent stars
    for (int i = 0; i < NUM_STARS; i++)
    {
       // Position stars in a hemisphere above
@@ -646,11 +645,11 @@ void InitStarfield()
 }
 
 /*
- * Initialize asteroids - moving objects in the sky
+ * Setting up asteroids moving through the sky
  */
 void InitAsteroids()
 {
-   srand(12345);  // Different seed from stars
+   srand(12345);  // Using different seed from stars
    for (int i = 0; i < NUM_ASTEROIDS; i++)
    {
       // Random horizontal positions spread across the sky
@@ -679,7 +678,7 @@ void InitAsteroids()
 }
 
 /*
- * Update asteroid positions (call in idle function)
+ * Updating asteroid positions, call this in idle function
  */
 void UpdateAsteroids()
 {
@@ -704,7 +703,7 @@ void UpdateAsteroids()
 }
 
 /*
- * Update aliens - make them move on the terrain
+ * Updating aliens, making them move on the terrain
  */
 void UpdateAliens(double time)
 {
@@ -731,7 +730,7 @@ void UpdateAliens(double time)
 }
 
 /*
- * Update jeeps - make them drive on the terrain
+ * Updating jeeps, making them drive on the terrain
  */
 void UpdateJeeps(double time)
 {
@@ -757,11 +756,11 @@ void UpdateJeeps(double time)
 }
 
 /*
- * Draw a single asteroid (irregular rocky shape)
+ * Drawing a single asteroid with irregular rocky shape
  */
 void DrawAsteroid(float x, float y, float z, float size, float rotX, float rotY, float rotZ)
 {
-   // Asteroid material - dark grey/brown
+   // Asteroid material, dark grey and brown
    float color[] = {0.4, 0.35, 0.3, 1.0};
    float spec[] = {0.05, 0.05, 0.05, 1.0};
    
@@ -776,7 +775,7 @@ void DrawAsteroid(float x, float y, float z, float size, float rotX, float rotY,
    glRotated(rotZ, 0, 0, 1);
    glScaled(size, size, size);
    
-   // Draw irregular asteroid shape (icosphere-like)
+   // Drawing irregular asteroid shape, like an icosphere
    glColor3f(0.4, 0.35, 0.3);
    for (int lat = -90; lat < 90; lat += 45)
    {
@@ -807,7 +806,7 @@ void DrawAsteroid(float x, float y, float z, float size, float rotX, float rotY,
 }
 
 /*
- * Draw all asteroids
+ * Drawing all asteroids
  */
 void DrawAsteroids()
 {
@@ -820,8 +819,7 @@ void DrawAsteroids()
 }
 
 /*
- * Draw starfield
- * Reference: ex19.c starfield rendering
+ * Drawing starfield
  */
 void DrawStarfield()
 {
@@ -840,8 +838,7 @@ void DrawStarfield()
 }
 
 /*
- * Draw vertex in polar coordinates (for sphere)
- * Reference: ex19.c planet rendering
+ * Drawing vertex in polar coordinates for sphere
  */
 static void Vertex(int th, int ph)
 {
@@ -853,19 +850,18 @@ static void Vertex(int th, int ph)
 }
 
 /*
- * Draw the giant sun with texture - positioned far away
- * Reference: ex19.c planet sphere rendering
+ * Drawing the giant sun with texture, positioned far away
  */
 void DrawSun(double x, double y, double z, double radius)
 {
-   // Sun emits its own light
+   // Sun emitting its own light
    float emission[] = {1.0, 0.5, 0.2, 1.0};  // Orange glow
    float ambient[] = {1.0, 0.5, 0.2, 1.0};
    
    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);
    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ambient);
    
-   // Enable texture
+   // Enabling texture
    glEnable(GL_TEXTURE_2D);
    glBindTexture(GL_TEXTURE_2D, sunTexture);
    glColor3f(1, 1, 1);
@@ -874,7 +870,7 @@ void DrawSun(double x, double y, double z, double radius)
    glTranslated(x, y, z);
    glScaled(radius, radius, radius);
    
-   // Draw textured sphere
+   // Drawing textured sphere
    for (int ph = -90; ph < 90; ph += 10)
    {
       glBegin(GL_QUAD_STRIP);
@@ -896,7 +892,7 @@ void DrawSun(double x, double y, double z, double radius)
    
    glDisable(GL_TEXTURE_2D);
    
-   // Reset emission
+   // Resetting emission
    float noEmission[] = {0, 0, 0, 1};
    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, noEmission);
    
@@ -904,14 +900,13 @@ void DrawSun(double x, double y, double z, double radius)
 }
 
 /*
- * Initialize lunar terrain with irregular surface and craters
- * Reference: ex18.c terrain generation
+ * Setting up lunar terrain with irregular surface and craters
  */
 void InitTerrain()
 {
    srand(12345);
    
-   // Generate base irregular terrain
+   // Generating base irregular terrain
    for (int i = 0; i < TERRAIN_SIZE; i++)
    {
       for (int j = 0; j < TERRAIN_SIZE; j++)
@@ -929,8 +924,8 @@ void InitTerrain()
       }
    }
    
-   // Add craters (depressions in the surface)
-   // Crater positions and sizes
+   // Adding craters, making depressions in the surface
+   // Setting crater positions and sizes
    struct {double x, z, radius, depth;} craters[] = {
       {-15, 10, 8.0, 3.0},   // Large crater left
       {20, 15, 5.0, 2.0},    // Medium crater right
@@ -973,7 +968,7 @@ void InitTerrain()
       }
    }
    
-   // Compute normals (reference: ex18.c normal calculation)
+   // Computing normals
    for (int i = 0; i < TERRAIN_SIZE; i++)
    {
       for (int j = 0; j < TERRAIN_SIZE; j++)
@@ -1001,27 +996,27 @@ void InitTerrain()
 }
 
 /*
- * Get terrain height at world position
+ * Getting terrain height at world position
  */
 double GetTerrainHeight(double worldX, double worldZ)
 {
-   // Convert world coordinates to terrain grid coordinates
+   // Converting world coordinates to terrain grid coordinates
    double i = (worldX / TERRAIN_SCALE) + TERRAIN_SIZE / 2.0;
    double j = (worldZ / TERRAIN_SCALE) + TERRAIN_SIZE / 2.0;
    
-   // Check bounds
+   // Checking bounds
    if (i < 0 || i >= TERRAIN_SIZE - 1 || j < 0 || j >= TERRAIN_SIZE - 1)
       return 0.0;
    
-   // Get integer parts
+   // Getting integer parts
    int i0 = (int)i;
    int j0 = (int)j;
    
-   // Get fractional parts
+   // Getting fractional parts
    double fi = i - i0;
    double fj = j - j0;
    
-   // Bilinear interpolation
+   // Doing bilinear interpolation
    double h00 = terrainZ[i0][j0];
    double h10 = terrainZ[i0+1][j0];
    double h01 = terrainZ[i0][j0+1];
@@ -1034,17 +1029,16 @@ double GetTerrainHeight(double worldX, double worldZ)
 }
 
 /*
- * Draw terrain with textured surface
- * Reference: ex18.c terrain rendering with normals
+ * Drawing terrain with textured surface
  */
 void DrawTerrain()
 {
-   // Disable lighting to show true texture colors
+   // Disabling lighting to show true texture colors
    glDisable(GL_LIGHTING);
    
    glEnable(GL_TEXTURE_2D);
    glBindTexture(GL_TEXTURE_2D, moonTexture);
-   glColor3f(1.0, 1.0, 1.0);  // Full white to show true texture colors
+   glColor3f(1.0, 1.0, 1.0);  // Using full white to show true texture colors
    
    for (int i = 0; i < TERRAIN_SIZE - 1; i++)
    {
@@ -1067,25 +1061,25 @@ void DrawTerrain()
    
    glDisable(GL_TEXTURE_2D);
    
-   // Re-enable lighting for other objects
+   // Re-enabling lighting for other objects
    glEnable(GL_LIGHTING);
 }
 
-// Environmental objects - ROCKS ONLY
-#define NUM_ROCKS 70  // Increased from 50 to 70
+// Rocks only, no other environment objects
+#define NUM_ROCKS 70  // Raised from 50 to 70
 
 typedef struct {
    double x, y, z;
    double size;
    double rotX, rotY, rotZ;
-   int type;  // 0=angular, 1=rounded, 2=tall
-   int textureIndex;  // Which texture to use
+   int type;  // 0 is angular, 1 is rounded, 2 is tall
+   int textureIndex;  // Which texture we're using
 } Rock;
 
 Rock rocks[NUM_ROCKS];
 
 /*
- * Random float between min and max
+ * Getting random float between min and max
  */
 float RandFloat(float min, float max)
 {
@@ -1093,15 +1087,15 @@ float RandFloat(float min, float max)
 }
 
 /*
- * Initialize environmental objects
- * Rocks dispersed across entire terrain plane
+ * Setting up environment objects
+ * Rocks scattered across the entire terrain
  */
 void InitEnvironment()
 {
    srand(54321);
    
-   // ROCKS - 70 rocks with varying sizes from very big to big
-   // Dispersed across the entire terrain (-250 to +250 in X and Z)
+   // ROCKS, 70 total with varying sizes from very big to big
+   // Scattered across the entire terrain, -250 to +250 in X and Z
    for (int i = 0; i < NUM_ROCKS; i++)
    {
       // Generate random positions across the entire terrain
@@ -1132,13 +1126,12 @@ void InitEnvironment()
 }
 
 /*
- * Draw a rock with irregular shape and texture
- * Reference: ex16.c for basic geometry
+ * Drawing a rock with irregular shape and texture
  */
 void DrawRock(double x, double y, double z, double size, 
               double rotX, double rotY, double rotZ, int type, int textureIndex)
 {
-   // Rock material - white to let texture show through
+   // Rock material, white to let texture show through
    float white[] = {1.0, 1.0, 1.0, 1.0};
    float spec[] = {0.1, 0.1, 0.1, 1.0};
    
@@ -1146,7 +1139,7 @@ void DrawRock(double x, double y, double z, double size,
    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 8.0);
    
-   // Select and bind appropriate texture
+   // Selecting and binding appropriate texture
    glEnable(GL_TEXTURE_2D);
    unsigned int textures[] = {rockTexture1, rockTexture2, rockTexture3, rockTexture4, rockTexture5, rockTexture6};
    glBindTexture(GL_TEXTURE_2D, textures[textureIndex]);
@@ -1159,7 +1152,7 @@ void DrawRock(double x, double y, double z, double size,
    glRotated(rotZ, 0, 0, 1);
    glScaled(size, size, size);
    
-   // Angular rock type commented out - no sharp rocks
+   // Angular rock type removed, no sharp rocks
    /*
    if (type == 0)  // Angular rock
    {
@@ -1247,8 +1240,7 @@ void DrawRock(double x, double y, double z, double size,
 }
 
 /*
- * Setup lighting
- * Reference: ex17.c lighting setup
+ * Setting up lighting
  */
 void SetupLighting()
 {
@@ -1258,7 +1250,7 @@ void SetupLighting()
       return;
    }
    
-   // Calculate sun position (animated if enabled)
+   // Getting sun position, animated if enabled
    // double sunAngle = animateSun ? sunTime * 10.0 : 45.0;
    // double sunX = 5.0 * Cos(sunAngle);
    // double sunY = 3.0;
@@ -1266,7 +1258,7 @@ void SetupLighting()
    
    // Light coming from the giant sun direction
    float lightPos[] = {-1.0, 0.5, -1.0, 0.0};  // Directional from sun
-   float ambient[] = {0.2, 0.2, 0.25, 1.0};    // Slight blue ambient (space)
+   float ambient[] = {0.2, 0.2, 0.25, 1.0};    // Slight blue ambient from space
    float diffuse[] = {1.0, 0.95, 0.9, 1.0};    // Warm sunlight
    float specular[] = {0.5, 0.5, 0.5, 1.0};
    
@@ -1281,7 +1273,7 @@ void SetupLighting()
 }
 
 /*
- * Setup perspective projection
+ * Setting up perspective projection
  */
 void SetupProjection()
 {
@@ -1292,7 +1284,7 @@ void SetupProjection()
 }
 
 /*
- * Setup camera based on view mode
+ * Setting up camera based on view mode
  */
 void SetupCamera()
 {
@@ -1323,58 +1315,58 @@ void SetupCamera()
 }
 
 /*
- * Update player movement with smooth physics
+ * Updating player movement with smooth frame independent physics
  */
 void UpdatePlayer(double dt)
 {
    if (dt <= 0) return;
    
-   // Clamp dt to prevent huge jumps
+   // Clamping dt to prevent huge jumps
    if (dt > 0.1) dt = 0.1;
    
    double moveX = 0, moveZ = 0;
    
-   // Convert yaw to radians
+   // Converting yaw to radians
    double yawRad = playerYaw * M_PI / 180.0;
    
-   // Calculate frame-independent movement
+   // Calculating frame independent movement
    double frameSpeed = MOVE_SPEED * dt;
    
-   // Forward/backward - standard FPS movement (W=forward, S=backward)
-   if (moveForward && !moveBackward)  // Ensure only one direction at a time
+   // Forward and backward, standard FPS movement, W is forward, S is backward
+   if (moveForward && !moveBackward)  // Making sure only one direction at a time
    {
       moveX += sin(yawRad) * frameSpeed;
       moveZ += cos(yawRad) * frameSpeed;
    }
-   else if (moveBackward && !moveForward)  // Ensure only one direction at a time
+   else if (moveBackward && !moveForward)  // Making sure only one direction at a time
    {
       moveX -= sin(yawRad) * frameSpeed;
       moveZ -= cos(yawRad) * frameSpeed;
    }
    
-   // Left/right strafing - perpendicular to forward direction (A=left, D=right)
-   if (moveLeft && !moveRight)  // Ensure only one direction at a time
+   // Left and right strafing, perpendicular to forward direction, A is left, D is right
+   if (moveLeft && !moveRight)  // Making sure only one direction at a time
    {
       moveX += cos(yawRad) * frameSpeed;
       moveZ -= sin(yawRad) * frameSpeed;
    }
-   else if (moveRight && !moveLeft)  // Ensure only one direction at a time
+   else if (moveRight && !moveLeft)  // Making sure only one direction at a time
    {
       moveX -= cos(yawRad) * frameSpeed;
       moveZ += sin(yawRad) * frameSpeed;
    }
    
-   // Apply movement
+   // Applying movement
    playerX += moveX;
    playerZ += moveZ;
    
-   // Update height based on terrain
+   // Updating height based on terrain
    double terrainHeight = GetTerrainHeight(playerX, playerZ);
    playerY = terrainHeight + playerHeight;
 }
 
 /*
- * Draw simple player model (for third-person view)
+ * Drawing simple player model for third person view
  */
 void DrawPlayer()
 {
@@ -1382,24 +1374,24 @@ void DrawPlayer()
    glTranslated(playerX, playerY - playerHeight * 0.5, playerZ);
    glRotated(playerYaw, 0, 1, 0);
    
-   // Body (cyan for visibility)
+   // Body, cyan for visibility
    glColor3f(0, 1, 1);
    float bodyColor[] = {0.0, 1.0, 1.0, 1.0};
    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, bodyColor);
    
-   // Torso
+   // Drawing torso
    glPushMatrix();
    glScaled(0.3, 0.6, 0.2);
    glutSolidCube(1.0);
    glPopMatrix();
    
-   // Head
+   // Drawing head
    glPushMatrix();
    glTranslated(0, playerHeight / 2, 0);
    glutSolidSphere(0.15, 12, 12);
    glPopMatrix();
    
-   // Direction indicator
+   // Drawing direction indicator
    glDisable(GL_LIGHTING);
    glColor3f(1, 0, 0);
    glBegin(GL_LINES);
@@ -1411,30 +1403,18 @@ void DrawPlayer()
 }
 
 /*
- * Main display function
+ * Main display loop
  */
 void display()
 {
-   // Clear with black (space)
+   // Clearing with black space background
    glClearColor(0.0, 0.0, 0.0, 1.0);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    glEnable(GL_DEPTH_TEST);
    
    SetupProjection();
 
-
-
-
-
-
-
-
-
-
-
-
-
-   // *** SHOWCASE MODE CAMERA ***
+   // SHOWCASE MODE CAMERA
    if (showcaseMode)
    {
       // Fixed camera position looking at origin
@@ -1865,7 +1845,7 @@ void display()
 }
 
 /*
- * Idle function
+ * Idle callback
  */
 void idle()
 {
@@ -1892,7 +1872,7 @@ void idle()
 }
 
 /*
- * Keyboard input
+ * Keyboard input handler
  */
 void keyboard(unsigned char key, int x, int y)
 {
@@ -1965,7 +1945,7 @@ void keyboard(unsigned char key, int x, int y)
 }
 
 /*
- * Keyboard release
+ * Keyboard release handler
  */
 void keyboardUp(unsigned char key, int x, int y)
 {
@@ -1980,7 +1960,7 @@ void keyboardUp(unsigned char key, int x, int y)
 }
 
 /*
- * Mouse motion for looking
+ * Mouse motion handler for looking around
  */
 void mouseMotion(int x, int y)
 {
@@ -1997,7 +1977,7 @@ void mouseMotion(int x, int y)
    int deltaX = x - lastMouseX;
    int deltaY = y - lastMouseY;
    
-   // Ignore huge jumps
+   // Ignoring huge jumps
    if (abs(deltaX) > 200 || abs(deltaY) > 200)
    {
       lastMouseX = x;
@@ -2011,15 +1991,15 @@ void mouseMotion(int x, int y)
    playerYaw += deltaX * mouseSensitivity;
    playerPitch -= deltaY * mouseSensitivity;
    
-   // Clamp pitch
+   // Clamping pitch
    if (playerPitch > 89.0) playerPitch = 89.0;
    if (playerPitch < -89.0) playerPitch = -89.0;
    
-   // Wrap yaw
+   // Wrapping yaw
    while (playerYaw > 360.0) playerYaw -= 360.0;
    while (playerYaw < 0.0) playerYaw += 360.0;
    
-   // Re-center if near edges
+   // Re-centering if near edges
    if (x < 100 || x > windowWidth - 100 || y < 100 || y > windowHeight - 100)
    {
       int centerX = windowWidth / 2;
@@ -2038,7 +2018,7 @@ void passiveMouseMotion(int x, int y)
 }
 
 /*
- * Window reshape
+ * Window reshape handler
  */
 void reshape(int width, int height)
 {
@@ -2050,7 +2030,7 @@ void reshape(int width, int height)
 }
 
 /*
- * Main
+ * Main entry point
  */
 int main(int argc, char* argv[])
 {
@@ -2063,21 +2043,21 @@ int main(int argc, char* argv[])
    if (glewInit() != GLEW_OK) Fatal("Error initializing GLEW\n");
 #endif
    
-   // Initialize scene
+   // Setting up scene
    InitTerrain();
    InitStarfield();
-   InitAsteroids();  // Initialize moving asteroids
-   InitEnvironment();  // Initialize only rocks now
-   InitCrystals();     // Initialize crystal positions for absorption pairs
-   InitAliens();  // Initialize wandering aliens
-   InitUFOs();  // Initialize UFO spacecrafts
-   InitJeeps();  // Initialize Jeep Wranglers
-   InitFlora();  // Initialize flora across terrain
-   // NOTE: Armored vehicles depend on playerYaw for forward placement.
-   // We defer their initialization until after playerYaw is set toward the sun.
-   InitExtraDrones(); // Initialize additional scout drones after base scene pieces
+   InitAsteroids();  // Setting up moving asteroids
+   InitEnvironment();  // Setting up only rocks now
+   InitCrystals();     // Setting up crystal positions for absorption pairs
+   InitAliens();  // Setting up wandering aliens
+   InitUFOs();  // Setting up UFO spacecrafts
+   InitJeeps();  // Setting up Jeep Wranglers
+   InitFlora();  // Setting up flora across terrain
+   // NOTE: Armored vehicles need playerYaw for forward placement
+   // We're setting them up after playerYaw is set toward the sun
+   InitExtraDrones(); // Setting up additional scout drones after base scene pieces
    
-   // Load textures
+   // Loading textures
    moonTexture = LoadTexBMP("moon-textures/moon.bmp");
    sunTexture = LoadTexBMP("moon-textures/sun.bmp");
    rockTexture1 = LoadTexBMP("moon-textures/moon2.bmp");
@@ -2087,29 +2067,29 @@ int main(int argc, char* argv[])
    rockTexture5 = LoadTexBMP("textures/rusty_car.bmp");
    rockTexture6 = LoadTexBMP("textures/rusty_plane.bmp");
    
-   // Load floral textures (skip flora-2.bmp as it's 32-bit, not 24-bit)
+   // Loading floral textures, skipping flora-2.bmp since it's 32-bit, not 24-bit
    floraTexture1 = LoadTexBMP("textures/floral/flora-1.bmp");
-   floraTexture2 = LoadTexBMP("textures/floral/flora-3.bmp");  // Use flora-3 instead of flora-2
+   floraTexture2 = LoadTexBMP("textures/floral/flora-3.bmp");  // Using flora-3 instead of flora-2
    floraTexture3 = LoadTexBMP("textures/floral/moss.bmp");
-   mossTexture = LoadTexBMP("textures/floral/flora-1.bmp");  // Reuse flora-1 for 4th texture
+   mossTexture = LoadTexBMP("textures/floral/flora-1.bmp");  // Reusing flora-1 for 4th texture
    
-   // Load alien textures
+   // Loading alien textures
    alienTexture1 = LoadTexBMP("textures/aliens/alien-type-1.bmp");
    alienTexture2 = LoadTexBMP("textures/aliens/alien-type-2.bmp");
    alienTexture3 = LoadTexBMP("textures/aliens/alien-type-3.bmp");
    
-   // Set player starting position
+   // Setting player starting position
    playerY = GetTerrainHeight(playerX, playerZ) + playerHeight;
-   // Face player toward the sun at spawn
+   // Making player face toward the sun at spawn
    playerYaw = FacingTowardSun(playerX, playerZ);
-   // Now that playerYaw is known, initialize armored vehicles in front of player
-   InitArmoredVehicles(); // Initialize two armored transports ahead of player (correct ordering)
-   InitFlyingArmoredVehicles(); // Initialize 10 flying patrol vehicles
-   InitExtraDrones();     // Initialize 12 additional wandering scout drones
+   // Now that playerYaw is known, setting up armored vehicles in front of player
+   InitArmoredVehicles(); // Setting up two armored transports ahead of player, correct ordering
+   InitFlyingArmoredVehicles(); // Setting up 10 flying patrol vehicles
+   InitExtraDrones();     // Setting up 12 additional wandering scout drones
 
    // sporeCloud1 = CreateSporeCloud(0.6, 40);
    
-   // Set callbacks
+   // Setting callbacks
    glutDisplayFunc(display);
    glutReshapeFunc(reshape);
    glutKeyboardFunc(keyboard);
@@ -2118,7 +2098,7 @@ int main(int argc, char* argv[])
    glutPassiveMotionFunc(passiveMouseMotion);
    glutIdleFunc(idle);
    
-   // Disable key repeat to prevent sticky keys
+   // Disabling key repeat to prevent sticky keys
    glutIgnoreKeyRepeat(1);
    
    glutSetCursor(GLUT_CURSOR_NONE);

@@ -1,5 +1,6 @@
 /*
  *  Alien Scout Drone - Searches and scans for "FloatingCrystalShards"
+ * Took assistance from AI in building the particle system and shader integration
  */
 
 #include "CSCIx229.h"

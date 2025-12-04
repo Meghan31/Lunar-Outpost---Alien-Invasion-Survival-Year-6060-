@@ -1,5 +1,6 @@
 /*
  *  Alien Flora Collection - 6 Unique Species
+ * Took assistance from AI in building little parts for positioning
  */
 #include "CSCIx229.h"
 
