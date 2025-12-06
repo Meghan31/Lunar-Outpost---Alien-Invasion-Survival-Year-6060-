@@ -102,6 +102,7 @@ static void DrawHexBolt(double size)
 
 /*
  * Drawing armor panel with rivets and welds
+ * Took help from AI to finish this part
  */
 static void DrawArmorPanel(double width, double height, double depth, int boltCount, int useTexture)
 {
@@ -829,6 +830,7 @@ static void DrawWeaponTurret(double time)
 
 /*
  * Drawing hover thrusters
+ * Took help from AI to finish this part
  */
 static void DrawHoverThrusters(double time)
 {

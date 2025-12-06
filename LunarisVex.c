@@ -211,6 +211,7 @@ static void DrawSmoothSphere(double r, int detail)
 
 /*
  * Drawing alien head with layered details
+ * Took help from AI to finish this part
  */
 static void DrawAlienHead(double time, int emotion, double glowIntensity)
 {
@@ -623,6 +624,7 @@ static void DrawArm(int side, double shoulderRotX, double elbowRotX, double time
 
 /*
  * Drawing translucent wing membrane
+ * Took help from AI to finish this part
  */
 static void DrawWingMembrane(int side, double time, double glidePhase)
 {

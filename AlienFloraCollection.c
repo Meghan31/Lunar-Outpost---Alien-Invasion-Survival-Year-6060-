@@ -6,6 +6,7 @@
 
 /*
  *  Drawing smooth organic sphere with variation
+ * Took help from AI to finish this part
  */
 static void DrawOrganicSphere(double r, int detail, double irregularity)
 {
@@ -451,6 +452,7 @@ void AlienFloraBladeFan(double x, double y, double z, double scale, double time)
    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 100.0);
    
    // 5-6 tall curved blades
+   // Took help from AI to finish this part
    int numBlades = 6;
    for (int blade = 0; blade < numBlades; blade++)
    {

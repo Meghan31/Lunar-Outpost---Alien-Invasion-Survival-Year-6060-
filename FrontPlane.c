@@ -1,4 +1,5 @@
 #include "CSCIx229.h"
+#include "Plane.h"
 
 /*
  *  Crashed airplane (front section)
@@ -7,6 +8,7 @@
  */
 
 double airplaneFrontScaleUp = 1.0;  // Airplane scale multiplier
+double airplaneFrontYawDeg = 0.0;
 
 static void crashed_front_airplane(double x, double y, double z, double s)
 {
@@ -19,6 +21,7 @@ static void crashed_front_airplane(double x, double y, double z, double s)
    
    glPushMatrix();
    glTranslated(x, y, z);
+   glRotated(airplaneFrontYawDeg, 0, 1, 0);
    // Rotate to lay flat on ground - rotate 90 degrees around Z axis
    glRotated(90, 0, 0, 1);  // Lay it flat on XZ plane
    glRotated(10, 0, 1, 0);   // Slight yaw for realism
@@ -380,4 +383,12 @@ static void crashed_front_airplane(double x, double y, double z, double s)
    glDisable(GL_TEXTURE_2D);
    
    glPopMatrix();
+}
+
+void CrashedFrontPlane(double x, double y, double z, double scale, double yaw)
+{
+   double previousYaw = airplaneFrontYawDeg;
+   airplaneFrontYawDeg = yaw;
+   crashed_front_airplane(x, y, z, scale);
+   airplaneFrontYawDeg = previousYaw;
 }

@@ -110,6 +110,7 @@ static void EmitParticle(float x, float y, float z, float time, int seed)
 
 /*
  *  Updating particle system
+ * Took help from AI to finish this part
  */
 static void UpdateParticles(float dt)
 {
@@ -334,6 +335,7 @@ static void DrawEnergyField(float radius, float intensity, float time)
    glDisable(GL_BLEND);
    glEnable(GL_LIGHTING);
 }
+// Took help from AI to finish this part
 static void DrawMicroFacet(float x1, float y1, float z1,
                           float x2, float y2, float z2,
                           float x3, float y3, float z3,

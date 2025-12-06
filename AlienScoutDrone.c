@@ -110,6 +110,7 @@ static void EmitPropulsionParticle(float x, float y, float z, float time)
 
 /*
  * Updating propulsion particles
+ * Took help from AI to finish this part
  */
 static void UpdatePropulsion(float dt)
 {
@@ -228,6 +229,7 @@ static void DrawRealisticBody(float size, float time, int mode)
 }
 
 // Drawing realistic textured angular panel/wing
+// Took help from AI to finish this part
 static void DrawRealisticPanel(float size)
 {
    glEnable(GL_TEXTURE_2D);

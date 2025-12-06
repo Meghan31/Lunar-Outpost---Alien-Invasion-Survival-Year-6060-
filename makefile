@@ -1,4 +1,4 @@
-EXE=L
+EXE=final
 
 # Main target
 all: $(EXE)
@@ -36,6 +36,22 @@ AlienFloraCollection.o: AlienFloraCollection.c CSCIx229.h
 JeepWrangler.o: JeepWrangler.c CSCIx229.h
 astronaut.o: astronaut.c CSCIx229.h astronaut.h
 
+# NEW HW6 object dependencies
+House.o: House.c CSCIx229.h House.h
+Tree.o: Tree.c CSCIx229.h Tree.h
+Human.o: Human.c CSCIx229.h Human.h
+Target.o: Target.c CSCIx229.h Target.h
+BrokenTable.o: BrokenTable.c CSCIx229.h BrokenTable.h
+OldCar.o: OldCar.c CSCIx229.h OldCar.h
+Boulder.o: Boulder.c CSCIx229.h Boulder.h
+Grenade.o: Grenade.c CSCIx229.h Grenade.h
+HealthKit.o: HealthKit.c CSCIx229.h HealthKit.h
+Primitives.o: Primitives.c CSCIx229.h Primitives.h
+Helicopter.o: Helicopter.c CSCIx229.h Helicopter.h
+Plane.o: Plane.c CSCIx229.h Plane.h
+FrontPlane.o: FrontPlane.c CSCIx229.h Plane.h
+
+
 fatal.o: fatal.c CSCIx229.h
 errcheck.o: errcheck.c CSCIx229.h
 print.o: print.c CSCIx229.h
@@ -54,9 +70,10 @@ CSCIx229.a:fatal.o errcheck.o print.o loadtexbmp.o loadobj.o projection.o
 	g++ -c $(CFLG)  $<
 
 
-# L: LunarOutpost.o FloatingCrystalShard.o shader_loader.o AlienScoutDrone.o BioluminescentSporeCloud.o GeometricAlienFlora.o LunarisVex.o UFOSpacecraft.o ArmoredTransportVehicle.o AlienFloraCollection.o JeepWrangler.o CSCIx229.a
+# final: LunarOutpost.o FloatingCrystalShard.o shader_loader.o AlienScoutDrone.o BioluminescentSporeCloud.o GeometricAlienFlora.o LunarisVex.o UFOSpacecraft.o ArmoredTransportVehicle.o AlienFloraCollection.o JeepWrangler.o CSCIx229.a
 
-L: LunarOutpost.o FloatingCrystalShard.o shader_loader.o AlienScoutDrone.o LunarisVex.o UFOSpacecraft.o ArmoredTransportVehicle.o AlienFloraCollection.o JeepWrangler.o astronaut.o CSCIx229.a
+
+final: LunarOutpost.o FloatingCrystalShard.o shader_loader.o AlienScoutDrone.o LunarisVex.o UFOSpacecraft.o ArmoredTransportVehicle.o AlienFloraCollection.o JeepWrangler.o astronaut.o House.o Tree.o Human.o Target.o BrokenTable.o OldCar.o Boulder.o Grenade.o HealthKit.o Primitives.o Helicopter.o Plane.o FrontPlane.o CSCIx229.a
 	gcc $(CFLG) -o $@ $^  $(LIBS)
 	
 

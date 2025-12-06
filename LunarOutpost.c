@@ -1,15 +1,15 @@
 /*
  *  Lunar Outpost - Alien Invasion Survival (Year 6060)
  *  
- *  First-person survival game set on the Moon
+ *  First-person exploration game set on the Moon
  *  Features: Giant textured sun, starfield, irregular lunar terrain with craters
  *  
  *  Key bindings:
  *  WASD       Moving forward/left/backward/right
  *  Mouse      Looking around (FPP)
  *  v/V        Toggling FPP/Third-person debug view
+ *  e/E        Helicopter Simulator
  *  m/M        Toggling mouse look
- *  x/X        Toggling axes
  *  ESC        Exiting
  */
 
@@ -28,9 +28,25 @@
 #include "JeepWrangler.h"
 #include "astronaut.h"
 
+// All Old object models from Assignmnents
+#include "House.h"
+#include "Tree.h"
+#include "Human.h"
+#include "Target.h"
+#include "BrokenTable.h"
+#include "OldCar.h"
+#include "Boulder.h"
+#include "Grenade.h"
+#include "HealthKit.h"
+#include "Primitives.h"
+#include "Helicopter.h"
+#include "Plane.h"
+
 // Forward declaration needed before extra drone initialization uses it
 double GetTerrainHeight(double worldX, double worldZ);
 
+// Global variable for material shininess (used by HW6 objects)
+float shiny = 1;
 
 // Extra Alien Scout Drones (12 more)
 
@@ -136,6 +152,19 @@ bool moveBackward = false;
 bool moveLeft = false;
 bool moveRight = false;
 
+// Helicopter TPP control state
+int heliTPPMode = 0;          // 1 = controlling a helicopter in TPP
+double heliX = 0.0, heliY = 0.0, heliZ = 0.0;
+double heliYaw = 0.0;
+double heliScale = 1.5;
+double heliRotorSpeedCtrl = 1.0;
+int heliEngineOnCtrl = 1;
+// Helicopter control flags
+bool heliTurnLeft = false;
+bool heliTurnRight = false;
+bool heliAscend = false;
+bool heliDescend = false;
+
 // Mouse tracking
 int lastMouseX = 0;
 int lastMouseY = 0;
@@ -184,6 +213,12 @@ unsigned int mossTexture;    // moss.bmp
 unsigned int alienTexture1;  // alien-type-1.bmp
 unsigned int alienTexture2;  // alien-type-2.bmp
 unsigned int alienTexture3;  // alien-type-3.bmp
+
+// Helicopter textures
+unsigned int heliBodyTexture;   // helibody.bmp
+unsigned int heliBackTexture;   // heliback.bmp
+unsigned int heliMetalTexture;  // metal_plate.bmp
+unsigned int heliGlassTexture;  // heliglass.bmp
 
 // Astronaut textures (for objects that use texture[] array)
 unsigned int texture[20];  // Texture array for objects
@@ -256,6 +291,22 @@ typedef struct {
 } FlyingArmoredEntity;
 FlyingArmoredEntity flyingArmored[NUM_FLYING_ARMORED];
 
+// Helicopters
+#define NUM_HELICOPTERS 8
+typedef struct {
+   float x, y, z;
+   float baseY;          // ground level for landing
+   float facing;         // degrees (yaw)
+   float scale;          // render scale
+   float rotorSpeed;     // rotor speed multiplier
+   int engineOn;         // 0=off (grounded), 1=on (flying)
+   float speed;          // forward movement speed
+   float targetAltitude; // flying altitude above ground
+   int isLanding;        // transitioning to ground
+   int isTakingOff;      // transitioning to air
+} HelicopterEntity;
+HelicopterEntity helicopters[NUM_HELICOPTERS];
+
 // Flora instances scattered across terrain
 #define NUM_FLORA 25  // Scattered flora around the map
 typedef struct {
@@ -266,6 +317,105 @@ typedef struct {
    int seed;  // For procedural variation
 } FloraEntity;
 FloraEntity flora[NUM_FLORA];
+
+// ============= NEW HW6 OBJECTS - SCATTERED ENTITIES =============
+
+// Houses scattered across the terrain
+#define NUM_HOUSES 8
+typedef struct {
+   float x, y, z;
+   float scale;
+   float rotation;
+} HouseEntity;
+HouseEntity houses[NUM_HOUSES];
+
+// Trees scattered around
+#define NUM_TREES 15
+typedef struct {
+   float x, y, z;
+   float scale;
+} TreeEntity;
+TreeEntity trees[NUM_TREES];
+
+// Human figures wandering
+#define NUM_HUMANS 6
+typedef struct {
+   float x, y, z;
+   float scale;
+   float facing;
+   float speed;
+} HumanEntity;
+HumanEntity humans[NUM_HUMANS];
+
+// Archery targets
+#define NUM_TARGETS 5
+typedef struct {
+   float x, y, z;
+   float scale;
+} TargetEntity;
+TargetEntity targets[NUM_TARGETS];
+
+// Broken tables scattered as debris
+#define NUM_BROKEN_TABLES 8
+typedef struct {
+   float x, y, z;
+   float scale;
+   float rotation;
+} BrokenTableEntity;
+BrokenTableEntity brokenTables[NUM_BROKEN_TABLES];
+
+// Old abandoned cars
+#define NUM_OLD_CARS 6
+typedef struct {
+   float x, y, z;
+   float scale;
+   float rotation;
+} OldCarEntity;
+OldCarEntity oldCars[NUM_OLD_CARS];
+
+// Crashed airplane wreckage
+#define NUM_CRASHED_PLANES 10
+typedef struct {
+   float x, y, z;
+   float scale;
+   float yaw;
+} CrashedPlaneEntity;
+CrashedPlaneEntity crashedPlanes[NUM_CRASHED_PLANES];
+
+// Detached airplane nose sections
+#define NUM_PLANE_FRONTS 12
+typedef struct {
+   float x, y, z;
+   float scale;
+   float yaw;
+} PlaneFrontEntity;
+PlaneFrontEntity planeFronts[NUM_PLANE_FRONTS];
+
+// Boulders for additional terrain detail
+#define NUM_BOULDERS 20
+typedef struct {
+   float x, y, z;
+   float scale;
+} BoulderEntity;
+BoulderEntity boulders[NUM_BOULDERS];
+
+// Grenades scattered as collectibles
+#define NUM_GRENADES 12
+typedef struct {
+   float x, y, z;
+   float scale;
+} GrenadeEntity;
+GrenadeEntity grenades[NUM_GRENADES];
+
+// Health kits as collectibles
+#define NUM_HEALTHKITS 10
+typedef struct {
+   float x, y, z;
+   float scale;
+} HealthKitEntity;
+HealthKitEntity healthkits[NUM_HEALTHKITS];
+
+// ============= END NEW HW6 OBJECTS =============
 
 // Object showcase settings
 int showcaseMode = 0;  // 0 is normal game, 1 is showcase for individual objects
@@ -587,6 +737,135 @@ void UpdateFlyingArmoredVehicles(double time)
 }
 
 /*
+ * Setting up helicopters dispersed across the scene (on the ground)
+ */
+void InitHelicopters()
+{
+   // Define strategic positions around the scene for better visibility
+   float positions[8][2] = {
+      {20.0, 15.0},    // Near player spawn, slightly to the right
+      {-25.0, 20.0},   // Left side near spawn
+      {50.0, -30.0},   // South-east quadrant
+      {-40.0, -45.0},  // South-west quadrant
+      {70.0, 60.0},    // North-east quadrant
+      {-60.0, 55.0},   // North-west quadrant
+      {0.0, 80.0},     // Far north, center
+      {35.0, -70.0}    // Far south-east
+   };
+   
+   float facings[8] = {45.0, 135.0, 225.0, 315.0, 90.0, 180.0, 270.0, 0.0};
+   float scales[8] = {1.5, 1.3, 1.6, 1.4, 1.2, 1.7, 1.5, 1.3};
+   
+   for (int i = 0; i < NUM_HELICOPTERS; i++)
+   {
+      // Use predefined positions for better visibility
+      helicopters[i].x = positions[i][0];
+      helicopters[i].z = positions[i][1];
+      
+      // Place on ground - GetTerrainHeight gives ground level
+      double th = GetTerrainHeight(helicopters[i].x, helicopters[i].z);
+      helicopters[i].baseY = th;
+      helicopters[i].y = th; // Start on terrain
+      
+      // Use predefined facings for visual variety
+      helicopters[i].facing = facings[i];
+      
+      // Use predefined scales
+      helicopters[i].scale = scales[i];
+      
+      // Rotor speed variation
+      helicopters[i].rotorSpeed = 0.9 + (i * 0.05); // Slightly different speeds
+      
+      // Half have engines on (flying), half off (grounded)
+      helicopters[i].engineOn = (i % 2 == 0) ? 1 : 0;
+      
+      // Flying parameters
+      helicopters[i].speed = 0.12 + (i * 0.02); // Different speeds
+      helicopters[i].targetAltitude = 8.0 + (i * 1.5); // Varying flight heights
+      helicopters[i].isLanding = 0;
+      helicopters[i].isTakingOff = helicopters[i].engineOn ? 1 : 0;
+   }
+}
+
+/*
+ * Updating helicopters - flying around when engine on, grounded when off
+ */
+void UpdateHelicopters(double time)
+{
+   for (int i = 0; i < NUM_HELICOPTERS; i++)
+   {
+      // Update ground level in case terrain changes
+      double groundLevel = GetTerrainHeight(helicopters[i].x, helicopters[i].z);
+      helicopters[i].baseY = groundLevel;
+      
+      if (helicopters[i].engineOn)
+      {
+         // Engine is ON - helicopter should be flying
+         
+         // Taking off
+         if (helicopters[i].isTakingOff)
+         {
+            float targetY = helicopters[i].baseY + helicopters[i].targetAltitude;
+            if (helicopters[i].y < targetY)
+            {
+               helicopters[i].y += 0.08; // Ascend
+            }
+            else
+            {
+               helicopters[i].isTakingOff = 0; // Finished taking off
+            }
+         }
+         else
+         {
+            // Normal flight - patrol around
+            double rad = helicopters[i].facing * M_PI / 180.0;
+            helicopters[i].x += sin(rad) * helicopters[i].speed;
+            helicopters[i].z += cos(rad) * helicopters[i].speed;
+            
+            // Hovering motion - gentle bobbing
+            double phase = time * 1.5 + i * 0.5;
+            helicopters[i].y = helicopters[i].baseY + helicopters[i].targetAltitude + 
+                              0.6 * sin(phase) + 0.3 * cos(phase * 0.7);
+            
+            // Occasional heading changes
+            if (rand() % 120 == 0)
+            {
+               float delta = ((float)rand() / RAND_MAX * 50.0) - 25.0;
+               helicopters[i].facing += delta;
+               if (helicopters[i].facing < 0) helicopters[i].facing += 360.0;
+               if (helicopters[i].facing >= 360.0) helicopters[i].facing -= 360.0;
+            }
+            
+            // Wrap bounds
+            if (helicopters[i].x > 250.0) helicopters[i].x = -250.0;
+            if (helicopters[i].x < -250.0) helicopters[i].x = 250.0;
+            if (helicopters[i].z > 250.0) helicopters[i].z = -250.0;
+            if (helicopters[i].z < -250.0) helicopters[i].z = 250.0;
+         }
+      }
+      else
+      {
+         // Engine is OFF - helicopter should be on ground
+         
+         // Landing
+         if (helicopters[i].y > helicopters[i].baseY + 0.1)
+         {
+            helicopters[i].y -= 0.05; // Descend slowly
+            if (helicopters[i].y < helicopters[i].baseY)
+            {
+               helicopters[i].y = helicopters[i].baseY;
+            }
+         }
+         else
+         {
+            // Firmly on ground
+            helicopters[i].y = helicopters[i].baseY;
+         }
+      }
+   }
+}
+
+/*
  * Setting up Flora across the terrain
  * Scattered plants with proper height offsets staying above terrain
  */
@@ -625,6 +904,247 @@ void InitFlora()
       flora[i].seed = rand();
    }
 }
+
+// ============= NEW HW6 OBJECT INITIALIZATION FUNCTIONS =============
+
+/*
+ * Setting up houses scattered across the terrain
+ */
+void InitHouses()
+{
+   srand(111111);
+   for (int i = 0; i < NUM_HOUSES; i++)
+   {
+      houses[i].x = (float)rand() / RAND_MAX * 400.0 - 200.0;
+      houses[i].z = (float)rand() / RAND_MAX * 400.0 - 200.0;
+      houses[i].y = GetTerrainHeight(houses[i].x, houses[i].z);
+      houses[i].scale = 0.8 + (float)rand() / RAND_MAX * 0.4;
+      houses[i].rotation = (float)rand() / RAND_MAX * 360.0;
+   }
+}
+
+/*
+ * Setting up trees scattered around the terrain
+ */
+void InitTrees()
+{
+   srand(222222);
+   for (int i = 0; i < NUM_TREES; i++)
+   {
+      trees[i].x = (float)rand() / RAND_MAX * 450.0 - 225.0;
+      trees[i].z = (float)rand() / RAND_MAX * 450.0 - 225.0;
+      trees[i].y = GetTerrainHeight(trees[i].x, trees[i].z);
+      trees[i].scale = 0.6 + (float)rand() / RAND_MAX * 0.8;
+   }
+}
+
+/*
+ * Setting up human figures wandering
+ */
+void InitHumans()
+{
+   srand(333333);
+   for (int i = 0; i < NUM_HUMANS; i++)
+   {
+      humans[i].x = (float)rand() / RAND_MAX * 350.0 - 175.0;
+      humans[i].z = (float)rand() / RAND_MAX * 350.0 - 175.0;
+      humans[i].y = GetTerrainHeight(humans[i].x, humans[i].z) + 0.5;
+      humans[i].scale = 0.9 + (float)rand() / RAND_MAX * 0.3;
+      humans[i].facing = (float)rand() / RAND_MAX * 360.0;
+      humans[i].speed = 0.02 + (float)rand() / RAND_MAX * 0.03;
+   }
+}
+
+/*
+ * Setting up archery targets
+ */
+void InitTargets()
+{
+   srand(444444);
+   for (int i = 0; i < NUM_TARGETS; i++)
+   {
+      targets[i].x = (float)rand() / RAND_MAX * 400.0 - 200.0;
+      targets[i].z = (float)rand() / RAND_MAX * 400.0 - 200.0;
+      targets[i].y = GetTerrainHeight(targets[i].x, targets[i].z);
+      targets[i].scale = 0.8 + (float)rand() / RAND_MAX * 0.5;
+   }
+}
+
+/*
+ * Setting up broken tables as debris
+ */
+void InitBrokenTables()
+{
+   srand(555555);
+   for (int i = 0; i < NUM_BROKEN_TABLES; i++)
+   {
+      brokenTables[i].x = (float)rand() / RAND_MAX * 400.0 - 200.0;
+      brokenTables[i].z = (float)rand() / RAND_MAX * 400.0 - 200.0;
+      brokenTables[i].y = GetTerrainHeight(brokenTables[i].x, brokenTables[i].z);
+      brokenTables[i].scale = 0.7 + (float)rand() / RAND_MAX * 0.5;
+      brokenTables[i].rotation = (float)rand() / RAND_MAX * 360.0;
+   }
+}
+
+/*
+ * Setting up old abandoned cars
+ */
+void InitOldCars()
+{
+   srand(666666);
+   for (int i = 0; i < NUM_OLD_CARS; i++)
+   {
+      oldCars[i].x = (float)rand() / RAND_MAX * 400.0 - 200.0;
+      oldCars[i].z = (float)rand() / RAND_MAX * 400.0 - 200.0;
+      oldCars[i].y = GetTerrainHeight(oldCars[i].x, oldCars[i].z);
+      oldCars[i].scale = 0.6 + (float)rand() / RAND_MAX * 0.4;
+      oldCars[i].rotation = (float)rand() / RAND_MAX * 360.0;
+   }
+}
+
+/*
+ * Setting up boulders for terrain detail
+ */
+void InitBoulders()
+{
+   srand(777777);
+   for (int i = 0; i < NUM_BOULDERS; i++)
+   {
+      boulders[i].x = (float)rand() / RAND_MAX * 450.0 - 225.0;
+      boulders[i].z = (float)rand() / RAND_MAX * 450.0 - 225.0;
+      boulders[i].y = GetTerrainHeight(boulders[i].x, boulders[i].z);
+      boulders[i].scale = 0.5 + (float)rand() / RAND_MAX * 1.5;
+   }
+}
+
+/*
+ * Setting up grenades as collectibles
+ */
+void InitGrenades()
+{
+   srand(888889);
+   for (int i = 0; i < NUM_GRENADES; i++)
+   {
+      grenades[i].x = (float)rand() / RAND_MAX * 400.0 - 200.0;
+      grenades[i].z = (float)rand() / RAND_MAX * 400.0 - 200.0;
+      grenades[i].y = GetTerrainHeight(grenades[i].x, grenades[i].z) + 0.15;
+      grenades[i].scale = 0.8 + (float)rand() / RAND_MAX * 0.4;
+   }
+}
+
+/*
+ * Setting up health kits as collectibles
+ */
+void InitHealthKits()
+{
+   srand(999999);
+   for (int i = 0; i < NUM_HEALTHKITS; i++)
+   {
+      healthkits[i].x = (float)rand() / RAND_MAX * 400.0 - 200.0;
+      healthkits[i].z = (float)rand() / RAND_MAX * 400.0 - 200.0;
+      healthkits[i].y = GetTerrainHeight(healthkits[i].x, healthkits[i].z) + 0.2;
+      healthkits[i].scale = 0.7 + (float)rand() / RAND_MAX * 0.5;
+   }
+}
+
+/*
+ * Setting up scattered crashed airplane debris
+ */
+void InitCrashedPlanes()
+{
+   srand(121212);
+
+   const float anchorSites[][2] = {
+      {  35.0f,  -20.0f},
+      { -45.0f,   15.0f},
+      {  60.0f,   65.0f},
+      { -70.0f,  -55.0f},
+      {  15.0f,  110.0f},
+      { -95.0f,   95.0f},
+      { 120.0f,  -80.0f},
+      { -15.0f, -130.0f}
+   };
+   const int numSites = sizeof(anchorSites) / sizeof(anchorSites[0]);
+
+   for (int i = 0; i < NUM_CRASHED_PLANES; i++)
+   {
+      const float baseX = anchorSites[i % numSites][0];
+      const float baseZ = anchorSites[i % numSites][1];
+      float jitterX = ((float)rand() / RAND_MAX - 0.5f) * 24.0f;
+      float jitterZ = ((float)rand() / RAND_MAX - 0.5f) * 24.0f;
+
+      float rx = baseX + jitterX;
+      float rz = baseZ + jitterZ;
+
+      if (rx > 220.0f) rx = 220.0f;
+      if (rx < -220.0f) rx = -220.0f;
+      if (rz > 220.0f) rz = 220.0f;
+      if (rz < -220.0f) rz = -220.0f;
+
+      crashedPlanes[i].x = rx;
+      crashedPlanes[i].z = rz;
+      crashedPlanes[i].y = (float)GetTerrainHeight(rx, rz) + 0.05f;
+      crashedPlanes[i].scale = 0.9f + (float)rand() / RAND_MAX * 0.6f;
+      crashedPlanes[i].yaw = (float)rand() / RAND_MAX * 360.0f;
+   }
+
+   srand(131313);
+   for (int i = 0; i < NUM_PLANE_FRONTS; i++)
+   {
+      int anchor = i % NUM_CRASHED_PLANES;
+      if (i >= NUM_CRASHED_PLANES)
+      {
+         anchor = rand() % NUM_CRASHED_PLANES;
+      }
+
+      float radial = 6.0f + (float)rand() / RAND_MAX * 12.0f;
+      float angle = (float)rand() / RAND_MAX * 360.0f;
+      float px = crashedPlanes[anchor].x + radial * Sin(angle);
+      float pz = crashedPlanes[anchor].z + radial * Cos(angle);
+
+      if (px > 225.0f) px = 225.0f;
+      if (px < -225.0f) px = -225.0f;
+      if (pz > 225.0f) pz = 225.0f;
+      if (pz < -225.0f) pz = -225.0f;
+
+      planeFronts[i].x = px;
+      planeFronts[i].z = pz;
+      planeFronts[i].y = (float)GetTerrainHeight(px, pz) + 0.1f;
+      planeFronts[i].scale = 0.7f + (float)rand() / RAND_MAX * 0.45f;
+      planeFronts[i].yaw = (float)rand() / RAND_MAX * 360.0f;
+   }
+}
+
+/*
+ * Update humans wandering around
+ */
+void UpdateHumans(double time)
+{
+   for (int i = 0; i < NUM_HUMANS; i++)
+   {
+      // Move forward in facing direction
+      double radians = humans[i].facing * M_PI / 180.0;
+      humans[i].x += sin(radians) * humans[i].speed;
+      humans[i].z += cos(radians) * humans[i].speed;
+      
+      // Occasionally change direction
+      if (rand() % 200 == 0)
+      {
+         humans[i].facing += ((float)rand() / RAND_MAX - 0.5) * 60.0;
+      }
+      
+      // Keep within bounds
+      if (humans[i].x > 200.0) humans[i].x = -200.0;
+      if (humans[i].x < -200.0) humans[i].x = 200.0;
+      if (humans[i].z > 200.0) humans[i].z = -200.0;
+      if (humans[i].z < -200.0) humans[i].z = 200.0;
+      
+      // Update Y to follow terrain
+      humans[i].y = GetTerrainHeight(humans[i].x, humans[i].z) + 0.5;
+   }
+}
+
+// ============= END NEW HW6 OBJECT INITIALIZATION =============
 
 
 /*
@@ -1308,13 +1828,25 @@ void SetupCamera()
    }
    else  // Third-person debug view
    {
+      // Follow either the player or the helicopter in TPP
+      double followX = playerX;
+      double followY = playerY;
+      double followZ = playerZ;
+      double followYaw = playerYaw;
+      if (heliTPPMode)
+      {
+         followX = heliX;
+         followY = heliY;
+         followZ = heliZ;
+         followYaw = heliYaw;
+      }
       double camDist = 10.0;
-      double camX = playerX - camDist * sin(playerYaw * M_PI / 180.0);
-      double camY = playerY + 5.0;
-      double camZ = playerZ - camDist * cos(playerYaw * M_PI / 180.0);
+      double camX = followX - camDist * sin(followYaw * M_PI / 180.0);
+      double camY = followY + 5.0;
+      double camZ = followZ - camDist * cos(followYaw * M_PI / 180.0);
       
       gluLookAt(camX, camY, camZ,
-                playerX, playerY, playerZ,
+                followX, followY, followZ,
                 0, 1, 0);
    }
 }
@@ -1329,6 +1861,53 @@ void UpdatePlayer(double dt)
    // Clamping dt to prevent huge jumps
    if (dt > 0.1) dt = 0.1;
    
+   // If controlling helicopter, delegate to heli update
+   if (heliTPPMode)
+   {
+      // Update helicopter controls
+      double yawRad = heliYaw * M_PI / 180.0;
+      double frameSpeed = MOVE_SPEED * 0.6 * dt; // slightly slower than player
+      // Forward/backward
+      if (moveForward && !moveBackward)
+      {
+         heliX += sin(yawRad) * frameSpeed;
+         heliZ += cos(yawRad) * frameSpeed;
+      }
+      else if (moveBackward && !moveForward)
+      {
+         heliX -= sin(yawRad) * frameSpeed;
+         heliZ -= cos(yawRad) * frameSpeed;
+      }
+      // Yaw left/right
+      if (heliTurnLeft && !heliTurnRight)
+      {
+         heliYaw -= 60.0 * dt; // degrees per second
+      }
+      else if (heliTurnRight && !heliTurnLeft)
+      {
+         heliYaw += 60.0 * dt;
+      }
+      // Altitude control
+      double ground = GetTerrainHeight(heliX, heliZ);
+      if (heliAscend && !heliDescend)
+      {
+         heliY += 3.0 * dt;
+      }
+      else if (heliDescend && !heliAscend)
+      {
+         heliY -= 3.0 * dt;
+      }
+      // Keep above ground
+      double minAlt = ground + 0.8;
+      if (heliY < minAlt) heliY = minAlt;
+      // Update player camera anchor to helicopter
+      playerX = heliX;
+      playerY = heliY;
+      playerZ = heliZ;
+      playerYaw = heliYaw;
+      return;
+   }
+
    double moveX = 0, moveZ = 0;
    
    // Converting yaw to radians
@@ -1563,7 +2142,7 @@ void display()
       glWindowPos2i(5, windowHeight - 25);
       Print("=== SHOWCASE MODE ===");
       glWindowPos2i(5, windowHeight - 45);
-      Print("Press 'P' to cycle through objects");
+      // Print("Press 'P' to cycle through objects");
       glWindowPos2i(5, windowHeight - 65);
       if (showcaseObject == 0)
          Print("Object 1/3: Floating Crystal Shard");
@@ -1620,13 +2199,20 @@ void display()
              time, extraDrones[d].seed, extraDrones[d].scale, 1);
    }
       
-      // Draw player in third-person mode
+      // Draw controlled entity in third-person mode
       if (!viewMode)
       {
          glEnable(GL_LIGHTING);
-         // Draw realistic astronaut character at player position
-         Astronaut(playerX, playerY - playerHeight * 0.5, playerZ,
-                   1.0, playerYaw, time);
+         if (heliTPPMode)
+         {
+            Helicopter(heliX, heliY, heliZ, heliScale, heliYaw, time, heliRotorSpeedCtrl, heliEngineOnCtrl);
+         }
+         else
+         {
+            // Draw realistic astronaut character at player position
+            Astronaut(playerX, playerY - playerHeight * 0.5, playerZ,
+                      1.0, playerYaw, time);
+         }
       }
       
       // Draw axes if enabled
@@ -1648,7 +2234,7 @@ void display()
       glDisable(GL_LIGHTING);
       glColor3f(1, 1, 1);
       glWindowPos2i(5, 5);
-      Print("Press 'P' for Object Showcase Mode");
+      // Print("Press 'P' for Object Showcase Mode");
    }
 
 
@@ -1802,18 +2388,136 @@ void display()
                               flyingArmored[i].scale, flyingArmored[i].facing, time);
    }
 
+   // Draw helicopters (flying or on ground)
+   for (int i = 0; i < NUM_HELICOPTERS; i++)
+   {
+      // Only spin rotors if helicopter is in the air
+      int rotorsActive = 0;
+      if (helicopters[i].y > helicopters[i].baseY + 0.5)
+      {
+         rotorsActive = 1; // In air, rotors spinning
+      }
+      
+      Helicopter(helicopters[i].x, helicopters[i].y, helicopters[i].z,
+                 helicopters[i].scale,
+                 helicopters[i].facing,
+                 time,
+                 helicopters[i].rotorSpeed,
+                 rotorsActive);
+   }
+
+   // ============= DRAW NEW HW6 OBJECTS =============
+   
+   // Draw all houses scattered across terrain
+   for (int i = 0; i < NUM_HOUSES; i++)
+   {
+      glPushMatrix();
+      glTranslated(houses[i].x, houses[i].y, houses[i].z);
+      glRotated(houses[i].rotation, 0, 1, 0);
+      house(0, 0, 0, houses[i].scale);
+      glPopMatrix();
+   }
+   
+   // Draw all trees
+   for (int i = 0; i < NUM_TREES; i++)
+   {
+      tree(trees[i].x, trees[i].y, trees[i].z, trees[i].scale);
+   }
+   
+   // Draw all human figures wandering
+   for (int i = 0; i < NUM_HUMANS; i++)
+   {
+      glPushMatrix();
+      glTranslated(humans[i].x, humans[i].y, humans[i].z);
+      glRotated(humans[i].facing, 0, 1, 0);
+      human(0, 0, 0, humans[i].scale);
+      glPopMatrix();
+   }
+   
+   // Draw all archery targets
+   for (int i = 0; i < NUM_TARGETS; i++)
+   {
+      target(targets[i].x, targets[i].y, targets[i].z, targets[i].scale);
+   }
+   
+   // Draw all broken tables as debris
+   for (int i = 0; i < NUM_BROKEN_TABLES; i++)
+   {
+      glPushMatrix();
+      glTranslated(brokenTables[i].x, brokenTables[i].y, brokenTables[i].z);
+      glRotated(brokenTables[i].rotation, 0, 1, 0);
+      broken_table(0, 0, 0, brokenTables[i].scale);
+      glPopMatrix();
+   }
+   
+   // Draw all old abandoned cars
+   for (int i = 0; i < NUM_OLD_CARS; i++)
+   {
+      glPushMatrix();
+      glTranslated(oldCars[i].x, oldCars[i].y, oldCars[i].z);
+      glRotated(oldCars[i].rotation, 0, 1, 0);
+      old_car(0, 0, 0, oldCars[i].scale);
+      glPopMatrix();
+   }
+
+   // Draw scattered crashed airplane fuselages
+   for (int i = 0; i < NUM_CRASHED_PLANES; i++)
+   {
+      CrashedPlane(crashedPlanes[i].x,
+                   crashedPlanes[i].y,
+                   crashedPlanes[i].z,
+                   crashedPlanes[i].scale,
+                   crashedPlanes[i].yaw);
+   }
+
+   // Draw detached front sections from wreckage
+   for (int i = 0; i < NUM_PLANE_FRONTS; i++)
+   {
+      CrashedFrontPlane(planeFronts[i].x,
+                        planeFronts[i].y,
+                        planeFronts[i].z,
+                        planeFronts[i].scale,
+                        planeFronts[i].yaw);
+   }
+   
+   // Draw all boulders
+   for (int i = 0; i < NUM_BOULDERS; i++)
+   {
+      boulder(boulders[i].x, boulders[i].y, boulders[i].z, boulders[i].scale);
+   }
+   
+   // Draw all grenades scattered on ground
+   for (int i = 0; i < NUM_GRENADES; i++)
+   {
+      grenade(grenades[i].x, grenades[i].y, grenades[i].z, grenades[i].scale);
+   }
+   
+   // Draw all health kits (they spin!)
+   for (int i = 0; i < NUM_HEALTHKITS; i++)
+   {
+      healthkit(healthkits[i].x, healthkits[i].y, healthkits[i].z, healthkits[i].scale);
+   }
+   
+   // ============= END DRAW NEW HW6 OBJECTS =============
 
 
 
 
 
-   // Draw player in third-person mode
+
+   // Draw controlled entity in third-person mode
    if (!viewMode)
    {
       glEnable(GL_LIGHTING);
-      // Astronaut character at player position
-      Astronaut(playerX, playerY - playerHeight * 0.5, playerZ,
-                1.0, playerYaw, time);
+      if (heliTPPMode)
+      {
+         Helicopter(heliX, heliY, heliZ, heliScale, heliYaw, time, heliRotorSpeedCtrl, heliEngineOnCtrl);
+      }
+      else
+      {
+         Astronaut(playerX, playerY - playerHeight * 0.5, playerZ,
+                   1.0, playerYaw, time);
+      }
    }
    
    // Draw axes for debugging
@@ -1873,6 +2577,10 @@ void idle()
    UpdateArmoredVehicles(time); // Update armored vehicle movement
    UpdateFlyingArmoredVehicles(time); // Update flying armored vehicles
    UpdateExtraDrones(time); // Update extra scout drones wandering
+   UpdateHumans(time);  // Update human wandering (NEW)
+   
+   // Update health kit rotation for spinning effect
+   healthkitRotation = fmod(60.0 * time, 360.0);
    
    if (animateSun)
       sunTime = currentTime / 1000.0;
@@ -1900,6 +2608,24 @@ void keyboard(unsigned char key, int x, int y)
       viewMode = 1 - viewMode;
       // Reset movement when switching views
       moveForward = moveBackward = moveLeft = moveRight = false;
+      // Exiting helicopter mode if returning to FPP
+      if (viewMode == 1) heliTPPMode = 0;
+   }
+   else if (key == 'e' || key == 'E')
+   {
+      // Enter helicopter TPP mode: follow and control a helicopter
+      viewMode = 0;
+      heliTPPMode = 1;
+      // Initialize heli at current player position facing
+      heliX = playerX;
+      heliZ = playerZ;
+      heliYaw = playerYaw;
+      heliY = GetTerrainHeight(heliX, heliZ) + 2.0; // small hover
+      heliEngineOnCtrl = 1;
+      heliRotorSpeedCtrl = 1.0;
+      // Reset movement flags
+      moveForward = moveBackward = moveLeft = moveRight = false;
+      heliTurnLeft = heliTurnRight = heliAscend = heliDescend = false;
    }
    else if (key == 'm' || key == 'M')
    {
@@ -1909,45 +2635,45 @@ void keyboard(unsigned char key, int x, int y)
       else
          glutSetCursor(GLUT_CURSOR_INHERIT);
    }
-   else if (key == 'l' || key == 'L')
-      light = 1 - light;
-   else if (key == 'x' || key == 'X')
-      axes = 1 - axes;
-   else if (key == 't' || key == 'T')
-      animateSun = 1 - animateSun;
+   // else if (key == 'l' || key == 'L')
+   //    light = 1 - light;
+   // else if (key == 'x' || key == 'X')
+   //    axes = 1 - axes;
+   // else if (key == 't' || key == 'T')
+   //    animateSun = 1 - animateSun;
 
       
-   else if (key == 'p' || key == 'P')
-   {
-      if (!showcaseMode) {
-         // Enter showcase mode
-         showcaseMode = 1;
-         showcaseObject = 0;
-         printf("SHOWCASE MODE: Object %d - Floating Crystal Shard\n", showcaseObject);
-      } else {
-         // Cycle to next object
-         showcaseObject = (showcaseObject + 1) % NUM_SHOWCASE_OBJECTS;
-         if (showcaseObject == 0) {
-            printf("SHOWCASE MODE: Object %d - Floating Crystal Shard\n", showcaseObject);
-         } else if (showcaseObject == 1) {
-            printf("SHOWCASE MODE: Object %d - Alien Scout Drone\n", showcaseObject);
-         } else if (showcaseObject == 2) {
-            printf("SHOWCASE MODE: Object %d - Bioluminescent Spore Cloud\n", showcaseObject);
-         }
-      }
+   // else if (key == 'p' || key == 'P')
+   // {
+   //    if (!showcaseMode) {
+   //       // Enter showcase mode
+   //       showcaseMode = 1;
+   //       showcaseObject = 0;
+   //       printf("SHOWCASE MODE: Object %d - Floating Crystal Shard\n", showcaseObject);
+   //    } else {
+   //       // Cycle to next object
+   //       showcaseObject = (showcaseObject + 1) % NUM_SHOWCASE_OBJECTS;
+   //       if (showcaseObject == 0) {
+   //          printf("SHOWCASE MODE: Object %d - Floating Crystal Shard\n", showcaseObject);
+   //       } else if (showcaseObject == 1) {
+   //          printf("SHOWCASE MODE: Object %d - Alien Scout Drone\n", showcaseObject);
+   //       } else if (showcaseObject == 2) {
+   //          printf("SHOWCASE MODE: Object %d - Bioluminescent Spore Cloud\n", showcaseObject);
+   //       }
+   //    }
       
-      // If we've cycled through all, exit showcase mode
-      if (showcaseObject == 0 && showcaseMode) {
-         // Second time hitting object 0 means exit
-         static int pressCount = 0;
-         pressCount++;
-         if (pressCount > NUM_SHOWCASE_OBJECTS) {
-            showcaseMode = 0;
-            pressCount = 0;
-            printf("Exited showcase mode - returning to normal game\n");
-         }
-      }
-   }
+   //    // If we've cycled through all, exit showcase mode
+   //    if (showcaseObject == 0 && showcaseMode) {
+   //       // Second time hitting object 0 means exit
+   //       static int pressCount = 0;
+   //       pressCount++;
+   //       if (pressCount > NUM_SHOWCASE_OBJECTS) {
+   //          showcaseMode = 0;
+   //          pressCount = 0;
+   //          printf("Exited showcase mode - returning to normal game\n");
+   //       }
+   //    }
+   // }
    
    
    glutPostRedisplay();
@@ -1966,6 +2692,32 @@ void keyboardUp(unsigned char key, int x, int y)
       moveLeft = false;
    else if (key == 'd' || key == 'D')
       moveRight = false;
+}
+
+/*
+ * Arrow keys handler (special keys)
+ */
+void special(int key, int x, int y)
+{
+   // Only used for helicopter altitude and yaw control
+   if (heliTPPMode)
+   {
+      if (key == GLUT_KEY_UP) heliAscend = true;
+      else if (key == GLUT_KEY_DOWN) heliDescend = true;
+      else if (key == GLUT_KEY_LEFT) heliTurnLeft = true;
+      else if (key == GLUT_KEY_RIGHT) heliTurnRight = true;
+   }
+}
+
+void specialUp(int key, int x, int y)
+{
+   if (heliTPPMode)
+   {
+      if (key == GLUT_KEY_UP) heliAscend = false;
+      else if (key == GLUT_KEY_DOWN) heliDescend = false;
+      else if (key == GLUT_KEY_LEFT) heliTurnLeft = false;
+      else if (key == GLUT_KEY_RIGHT) heliTurnRight = false;
+   }
 }
 
 /*
@@ -2066,6 +2818,18 @@ int main(int argc, char* argv[])
    // We're setting them up after playerYaw is set toward the sun
    InitExtraDrones(); // Setting up additional scout drones after base scene pieces
    
+   // Initialize NEW HW6 objects scattered across terrain
+   InitHouses();       // 8 houses scattered
+   InitTrees();        // 15 trees
+   InitHumans();       // 6 wandering humans
+   InitTargets();      // 5 archery targets
+   InitBrokenTables(); // 8 broken tables as debris
+   InitOldCars();      // 6 abandoned cars
+   InitBoulders();     // 20 boulders
+   InitGrenades();     // 12 grenades
+   InitHealthKits();   // 10 health kits
+   InitCrashedPlanes(); // Scattered plane wreckage
+   
    // Loading textures
    moonTexture = LoadTexBMP("moon-textures/moon.bmp");
    sunTexture = LoadTexBMP("moon-textures/sun.bmp");
@@ -2087,6 +2851,9 @@ int main(int argc, char* argv[])
    alienTexture2 = LoadTexBMP("textures/aliens/alien-type-2.bmp");
    alienTexture3 = LoadTexBMP("textures/aliens/alien-type-3.bmp");
 
+   // Initialize helicopter textures (handled internally by Helicopter.c)
+   InitHelicopterTextures();
+
    // Loading astronaut textures into texture[] array
    // These indices match what astronaut.c expects
    texture[7]  = LoadTexBMP("textures/metals/blue_metal.bmp");      // Reflective visor
@@ -2095,6 +2862,23 @@ int main(int argc, char* argv[])
    texture[11] = LoadTexBMP("textures/spacesuit.bmp");              // Main suit body
    texture[12] = LoadTexBMP("textures/shoe.bmp");                   // Boots
    ntex = 13;  // Update texture count
+   
+   // Loading textures for HW6 objects (these are needed by the object .c files)
+   // Ground, wall, roof, bark, leaves, table, rusty_car, rock, grenade, healthkit
+   texture[0] = LoadTexBMP("textures/rock_ground.bmp");   // Ground
+   texture[1] = LoadTexBMP("textures/wall.bmp");          // House walls
+   texture[2] = LoadTexBMP("textures/roof.bmp");          // House roof
+   texture[3] = LoadTexBMP("textures/bark.bmp");          // Tree trunk
+   texture[4] = LoadTexBMP("textures/leaves-1.bmp");      // Tree foliage
+   texture[5] = LoadTexBMP("textures/table_plank.bmp");   // Table top
+   texture[6] = LoadTexBMP("textures/table_legs.bmp");    // Table legs
+   // texture[7] already used for visor
+   texture[8] = LoadTexBMP("textures/rock.bmp");          // Boulder
+   // texture[9] already used for metal_plate
+   // texture[10-12] already used for astronaut
+   texture[13] = LoadTexBMP("textures/pant.bmp");         // Human pants
+   texture[14] = LoadTexBMP("textures/shoe.bmp");         // Human shoes
+   texture[15] = LoadTexBMP("textures/healthkit.bmp");    // Health kit
 
    // Setting player starting position
    playerY = GetTerrainHeight(playerX, playerZ) + playerHeight;
@@ -2104,6 +2888,7 @@ int main(int argc, char* argv[])
    InitArmoredVehicles(); // Setting up two armored transports ahead of player, correct ordering
    InitFlyingArmoredVehicles(); // Setting up 10 flying patrol vehicles
    InitExtraDrones();     // Setting up 12 additional wandering scout drones
+   InitHelicopters();     // Setting up 3 helicopters on the ground
 
    // sporeCloud1 = CreateSporeCloud(0.6, 40);
    
@@ -2112,6 +2897,8 @@ int main(int argc, char* argv[])
    glutReshapeFunc(reshape);
    glutKeyboardFunc(keyboard);
    glutKeyboardUpFunc(keyboardUp);
+   glutSpecialFunc(special);
+   glutSpecialUpFunc(specialUp);
    glutMotionFunc(mouseMotion);
    glutPassiveMotionFunc(passiveMouseMotion);
    glutIdleFunc(idle);
@@ -2125,6 +2912,9 @@ int main(int argc, char* argv[])
    Print("=== Lunar Outpost - Year 6060 ===\n");
    Print("Environment: %d textured rocks (rounded & cylindrical only)\n", NUM_ROCKS);
    Print("%d asteroids falling slowly through the sky\n", NUM_ASTEROIDS);
+   Print("NEW: %d houses, %d trees, %d humans, %d targets, %d tables, %d cars, %d boulders\n",
+         NUM_HOUSES, NUM_TREES, NUM_HUMANS, NUM_TARGETS, NUM_BROKEN_TABLES, NUM_OLD_CARS, NUM_BOULDERS);
+   Print("Collectibles: %d grenades, %d health kits\n", NUM_GRENADES, NUM_HEALTHKITS);
    Print("Lunar landscape with giant sun and craters loaded\n");
    Print("Controls: WASD=Move, Mouse=Look\n");
    Print("V=Toggle View, M=Mouse, L=Light, T=Animate Sun, X=Axes\n");

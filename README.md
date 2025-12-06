@@ -7,18 +7,14 @@
 
 ## Project Overview
 
-A first-person/third-person survival experience set on the lunar surface in the year 6060. Navigate a desolate moon landscape populated with alien lifeforms, mysterious energy-harvesting UFOs, abandoned military vehicles, and bioluminescent flora while surviving the harsh environment.
-
-## What remains to be done
-
-I haven’t yet used any of my old objects (**House**, **Tree**, **Ground**, **Target**, **Human**, **Broken Table**, **Old Car**, **Boulder**, **Grenade**, **Health-kit**, **Wrecked Plane**, **Front-plane**) from the lighting assignment, but I’ll be adding them soon. Some of these assets are still under construction and need a bit more time to finish. After that, I plan to introduce a shooting-game style experience with a main character at center with specific tasks to complete. Once the shooting section is finished, players will be able to board a plane (also currently under construction) and fly it like a simulator across the scene for about a minute before the game ends. I’ll also be adding collision detection and creating new ruins of large buildings, crashed planes, skeletons, and additional flora to enhance the environment.
+A first-person/third-person exploration experience set on the lunar surface in the year 6060. Navigate a desolate moon landscape populated with alien lifeforms, mysterious energy-harvesting UFOs, abandoned military vehicles, and bioluminescent flora while surviving the harsh environment.
 
 ## Build Instructions
 
 **Run:**
 
 ```bash
-make clean && make && ./L
+make clean && make && ./final
 ```
 
 **Preferred view:**
@@ -28,12 +24,15 @@ make clean && make && ./L
 ## Technical Implementation
 
 ### Modified Files
+
 - `LunarOutpost.c` (main program)
 - `projection.c`
 - `UFOSpacecraft.c` - Energy-harvesting spacecraft with tractor beams
 - `JeepWrangler.c` - Abandoned military transport
+- `Helicopter.c` - Helicopter Model
 
 ### Custom Objects (AI-Assisted Development)
+
 - `FloatingCrystalShard.c` - Energy source with volumetric lighting
 - `AlienScoutDrone.c` - Autonomous patrol units
 - `LunarisVex.c` - Bioluminescent alien character with dust particles
@@ -41,8 +40,34 @@ make clean && make && ./L
 - `AlienFloraCollection.c` - Six unique alien plant species
 - `shader_loader.c` and shaders/
 
+### Reused Assignment Files
+
+- `Ball.c`
+- `Ball.h`
+- `Boulder.c`
+- `Boulder.h`
+- `BrokenTable.c`
+- `BrokenTable.h`
+- `Grenade.c`
+- `Grenade.h`
+- `Ground.c`
+- `Ground.h`
+- `HealthKit.h`
+- `Helicopter.c`
+- `Helicopter.h`
+- `House.c`
+- `House.h`
+- `Human.c`
+- `Human.h`
+- `OldCar.c`
+- `OldCar.h`
+- `Plane.c`
+- `FrontPlane.c`
+- `Primitives.c`
+- `Primitives.h`
 
 ### Environment Assets
+
 - 70 textured lunar rocks (rounded and cylindrical variants)
 - 15 falling asteroids
 - 20-star starfield backdrop
@@ -54,29 +79,37 @@ make clean && make && ./L
 ## Controls
 
 ### Movement (First-Person)
-| Key | Function |
-|-----|----------|
-| `W` | Move forward |
-| `S` | Move backward |
-| `A` | Strafe left |
-| `D` | Strafe right |
-| Mouse | Look around |
+
+| Key   | Function      |
+| ----- | ------------- |
+| `W`           | Move forward  |
+| `S`           | Move backward |
+| `A`           | Strafe left   |
+| `D`           | Strafe right  |
+| Mouse         | Look around   |
+| `UP_ARROW`    | helicopter will move up   |
+| `DOWN_ARROW`  | helicopter will move down |
+| `LEFT_ARROW`  | helicopter will Strafe left   |
+| `RIGHT_ARROW` | helicopter will Strafe right |
 
 ### Camera & View
-| Key | Function |
-|-----|----------|
+
+| Key | Function                                |
+| --- | --------------------------------------- |
 | `V` | Toggle First-Person / Third-Person view |
-| `M` | Toggle mouse look on/off |
+| `M` | Toggle mouse look on/off                |
+| `E` | Toggle Helicopter simulator             |
 
 ### Environment
-| Key | Function |
-|-----|----------|
+
+| Key | Function               |
+| --- | ---------------------- |
 | `X` | Toggle coordinate axes |
 
 ### Debug Features
-| Key | Function |
-|-----|----------|
-| `P` | Cycle through object showcase mode (12 objects) |
+
+| Key   | Function     |
+| ----- | ------------ |
 | `ESC` | Exit program |
 
 ## Scene Statistics
@@ -88,20 +121,12 @@ make clean && make && ./L
 ## Development Notes
 
 ### Texture Assets
+
 - Moon surface textures (6 variants)
 - Alien skin textures (3 types)
 - Flora textures (3 variants + moss)
 - Military vehicle textures (rusty metal)
 
-### Planned Features
-- Collision detection system
-- Shooting mechanics with mission objectives
-- Flyable plane vehicle (in-progress)
-- Ruins of large buildings and structures
-- Additional skeletal remains
-- Enhanced flora variety
-
 ## Project Timeline
 
-**Estimated Development Time:** ~25 days
-
+**Estimated Development Time:** ~40+ days

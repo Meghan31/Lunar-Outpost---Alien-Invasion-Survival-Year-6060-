@@ -1,4 +1,5 @@
 #include "CSCIx229.h"
+#include "Plane.h"
 
 /*
  *  Crashed airplane wreckage on ground
@@ -10,6 +11,7 @@ double airplaneScaleUp = 1.5;
 double airplaneGroundAdjust = -0.0;
 double airplaneRollDeg = 5.0;
 double airplanePitchDeg = -60.0;
+double airplaneYawDeg = 0.0;
 
 static void crashed_airplane(double x, double y, double z, double s)
 {
@@ -24,8 +26,9 @@ static void crashed_airplane(double x, double y, double z, double s)
    
    glPushMatrix();
    glTranslated(x, y, z);
+   glRotated(airplaneYawDeg, 0, 1, 0);
    glScaled(s * airplaneScaleUp, s * airplaneScaleUp, s * airplaneScaleUp);
-   
+
    glRotated(airplaneRollDeg, 0, 0, 1);
    glRotated(airplanePitchDeg, 1, 0, 0);
    glTranslated(0, airplaneGroundAdjust, 0);
@@ -511,4 +514,12 @@ static void crashed_airplane(double x, double y, double z, double s)
    glDisable(GL_TEXTURE_2D);
    
    glPopMatrix();
+}
+
+void CrashedPlane(double x, double y, double z, double scale, double yaw)
+{
+   double previousYaw = airplaneYawDeg;
+   airplaneYawDeg = yaw;
+   crashed_airplane(x, y, z, scale);
+   airplaneYawDeg = previousYaw;
 }
